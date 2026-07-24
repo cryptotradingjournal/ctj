@@ -1,0 +1,2514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartX — Trading Journal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0B0E13;
+    --surface: #12161F;
+    --surface-2: #171C27;
+    --border: #232938;
+    --text: #E7E9EE;
+    --text-muted: #7C8394;
+    --text-faint: #4B5262;
+    --accent: #E8A33D;
+    --accent-dim: #6B5127;
+    --gain: #35C48C;
+    --gain-dim: #163A2C;
+    --loss: #EF5350;
+    --loss-dim: #3A1A1B;
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+    --radius: 6px;
+  }
+
+  html[data-theme="glass"]{
+    --bg: #171b30;
+    --surface: rgba(255,255,255,0.09);
+    --surface-2: rgba(255,255,255,0.16);
+    --border: rgba(255,255,255,0.22);
+    --text: #F5F7FF;
+    --text-muted: rgba(245,247,255,0.68);
+    --text-faint: rgba(245,247,255,0.42);
+    --accent: #0A84FF;
+    --accent-dim: rgba(10,132,255,0.24);
+    --gain: #32D74B;
+    --gain-dim: rgba(50,215,75,0.18);
+    --loss: #FF453A;
+    --loss-dim: rgba(255,69,58,0.2);
+    --radius: 18px;
+  }
+
+  html[data-theme="apple"]{
+    --bg: #F5F5F7;
+    --surface: #FFFFFF;
+    --surface-2: #F5F5F7;
+    --border: #D2D2D7;
+    --text: #1D1D1F;
+    --text-muted: #6E6E73;
+    --text-faint: #86868B;
+    --accent: #0071E3;
+    --accent-dim: rgba(0,113,227,0.12);
+    --gain: #1DB954;
+    --gain-dim: rgba(29,185,84,0.12);
+    --loss: #FF3B30;
+    --loss-dim: rgba(255,59,48,0.1);
+    --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco, monospace;
+    --radius: 18px;
+  }
+
+  /* ---------- Liquid Glass background ---------- */
+  .glass-bg{
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    background: linear-gradient(160deg, #12162A 0%, #241B3E 55%, #0F1E32 100%);
+  }
+  .glass-bg span{
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(90px);
+    opacity: 0.5;
+    animation: glass-float 24s ease-in-out infinite;
+  }
+  .glass-bg span:nth-child(1){ width: 560px; height: 560px; background: #0A84FF; top: -140px; left: -100px; }
+  .glass-bg span:nth-child(2){ width: 500px; height: 500px; background: #BF5AF2; bottom: -160px; right: -120px; animation-delay: -8s; }
+  .glass-bg span:nth-child(3){ width: 420px; height: 420px; background: #32D74B; top: 42%; left: 58%; animation-delay: -16s; opacity: 0.32; }
+  @keyframes glass-float{
+    0%, 100%{ transform: translate(0,0) scale(1); }
+    50%{ transform: translate(36px,-28px) scale(1.08); }
+  }
+  html[data-theme="glass"] .glass-bg{ display: block; }
+  html[data-theme="glass"] body{ background: transparent; }
+  @media (prefers-reduced-motion: reduce){ .glass-bg span{ animation: none; } }
+
+  /* ---------- Liquid Glass surfaces ---------- */
+  html[data-theme="glass"] .ticker-wrap{
+    backdrop-filter: blur(22px) saturate(180%);
+    -webkit-backdrop-filter: blur(22px) saturate(180%);
+  }
+  html[data-theme="glass"] .stats{ background: transparent; border: none; gap: 14px; }
+  html[data-theme="glass"] .quick-pnl{ background: transparent; border: none; gap: 14px; }
+  html[data-theme="glass"] .stat,
+  html[data-theme="glass"] .quick-pnl-cell,
+  html[data-theme="glass"] .panel,
+  html[data-theme="glass"] .modal,
+  html[data-theme="glass"] .account-row,
+  html[data-theme="glass"] .ga-metric,
+  html[data-theme="glass"] .banner{
+    backdrop-filter: blur(26px) saturate(180%);
+    -webkit-backdrop-filter: blur(26px) saturate(180%);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.22);
+  }
+  html[data-theme="glass"] .stat,
+  html[data-theme="glass"] .quick-pnl-cell{ border-radius: var(--radius); }
+  html[data-theme="glass"] .ga-summary{ background: transparent; border-bottom: none; gap: 14px; }
+  html[data-theme="glass"] .ga-metric{ border: 1px solid var(--border); border-radius: var(--radius); }
+  html[data-theme="glass"] .account-row{ border-radius: 14px; }
+  html[data-theme="glass"] .overlay{ background: rgba(8,10,22,0.55); backdrop-filter: blur(6px); }
+  html[data-theme="glass"] .modal{ border-radius: 24px; }
+  html[data-theme="glass"] .field input,
+  html[data-theme="glass"] .field textarea,
+  html[data-theme="glass"] .field select{
+    background: rgba(255,255,255,0.06);
+    border-radius: 12px;
+  }
+  html[data-theme="glass"] .side-toggle button{ border-radius: 12px; background: rgba(255,255,255,0.05); }
+  html[data-theme="glass"] .btn{
+    border-radius: 999px;
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.18);
+  }
+  html[data-theme="glass"] .btn-primary{
+    background: linear-gradient(135deg, #0A84FF, #64D2FF);
+    color: #05192E;
+    border: none;
+    box-shadow: 0 4px 20px rgba(10,132,255,0.45), inset 0 1px 0 rgba(255,255,255,0.4);
+  }
+  html[data-theme="glass"] .btn-primary:hover{ filter: brightness(1.08); }
+  html[data-theme="glass"] .sync-pill{
+    border-radius: 999px;
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.18);
+  }
+  html[data-theme="glass"] .pnl-chip{ backdrop-filter: blur(10px); }
+  html[data-theme="glass"] tbody tr:hover{ background: rgba(255,255,255,0.06); }
+  html[data-theme="glass"] .icon-btn:hover{ background: rgba(255,255,255,0.14); }
+
+  /* ---------- Apple Style surfaces ---------- */
+  html[data-theme="apple"] .stats{ background: transparent; border: none; gap: 14px; }
+  html[data-theme="apple"] .quick-pnl{ background: transparent; border: none; gap: 14px; }
+  html[data-theme="apple"] .ga-summary{ background: transparent; border-bottom: none; gap: 14px; }
+  html[data-theme="apple"] .stat,
+  html[data-theme="apple"] .quick-pnl-cell,
+  html[data-theme="apple"] .panel,
+  html[data-theme="apple"] .modal,
+  html[data-theme="apple"] .account-row,
+  html[data-theme="apple"] .ga-metric,
+  html[data-theme="apple"] .banner{
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 6px 20px rgba(0,0,0,0.06);
+  }
+  html[data-theme="apple"] .stat,
+  html[data-theme="apple"] .quick-pnl-cell{ border-radius: var(--radius); }
+  html[data-theme="apple"] .ga-metric{ border: 1px solid var(--border); border-radius: var(--radius); }
+  html[data-theme="apple"] .account-row{ border-radius: 14px; }
+  html[data-theme="apple"] .overlay{ background: rgba(0,0,0,0.4); backdrop-filter: blur(6px); }
+  html[data-theme="apple"] .modal{ border-radius: 24px; }
+  html[data-theme="apple"] .field input,
+  html[data-theme="apple"] .field textarea,
+  html[data-theme="apple"] .field select{
+    background: #FFFFFF;
+    border-radius: 12px;
+  }
+  html[data-theme="apple"] .side-toggle button{ border-radius: 12px; background: var(--bg); }
+  html[data-theme="apple"] .btn{ border-radius: 980px; }
+  html[data-theme="apple"] .btn-primary{
+    background: var(--accent);
+    color: #FFFFFF;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0,113,227,0.35);
+  }
+  html[data-theme="apple"] .btn-primary:hover{ background: #0077ED; filter: none; }
+  html[data-theme="apple"] .sync-pill{ border-radius: 980px; }
+  html[data-theme="apple"] tbody tr:hover{ background: var(--bg); }
+  html[data-theme="apple"] .icon-btn:hover{ background: var(--bg); }
+  html[data-theme="apple"] .side-long{ background: var(--gain-dim); color: #1B8E3D; }
+  html[data-theme="apple"] .side-short{ background: var(--loss-dim); color: #D70015; }
+
+
+  html{ scroll-behavior: smooth; }
+  *, *::before, *::after{ box-sizing: border-box; }
+  body{
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-display);
+    min-height: 100vh;
+    margin: 0;
+    padding-bottom: 80px;
+  }
+
+  ::selection{ background: var(--accent-dim); color: var(--accent); }
+
+  /* ---------- Ticker tape ---------- */
+  .ticker-wrap{
+    width: 100%;
+    overflow: hidden;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 9px 0;
+    white-space: nowrap;
+  }
+  .ticker-track{
+    display: inline-flex;
+    animation: ticker-scroll 32s linear infinite;
+  }
+  .ticker-wrap:hover .ticker-track{ animation-play-state: paused; }
+  @keyframes ticker-scroll{
+    0%{ transform: translateX(0); }
+    100%{ transform: translateX(-50%); }
+  }
+  .ticker-item{
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    letter-spacing: 0.02em;
+    color: var(--text-muted);
+    padding: 0 22px;
+    border-right: 1px solid var(--border);
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .ticker-item b{ color: var(--text); font-weight: 600; }
+  .ticker-item.up{ color: var(--gain); }
+  .ticker-item.down{ color: var(--loss); }
+  .ticker-empty{ font-family: var(--font-mono); font-size: 12.5px; color: var(--text-faint); padding: 0 22px; }
+
+  @media (prefers-reduced-motion: reduce){
+    .ticker-track{ animation: none; overflow-x: auto; }
+  }
+
+  /* ---------- Layout ---------- */
+  .wrap{ max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+  header.top{
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 40px 0 28px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .wordmark{
+    font-size: 30px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .wordmark .dot{
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--accent);
+    display: inline-block;
+    margin-right: 2px;
+  }
+  .wordmark small{
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-faint);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+  }
+  .subline{ color: var(--text-muted); font-size: 13.5px; margin-top: 6px; text-align: left; }
+
+  .btn{
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 13.5px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    padding: 11px 18px;
+    cursor: pointer;
+    transition: border-color .15s ease, transform .1s ease, background .15s ease;
+  }
+  .btn:hover{ border-color: var(--text-faint); }
+  .btn:active{ transform: translateY(1px); }
+  .btn-primary{
+    background: var(--accent);
+    color: #1A1305;
+    border-color: var(--accent);
+  }
+  .btn-primary:hover{ filter: brightness(1.08); border-color: var(--accent); }
+  .btn-ghost{ background: transparent; }
+  .btn-danger-ghost{ background: transparent; color: var(--loss); border-color: var(--loss-dim); }
+  .btn-danger-ghost:hover{ border-color: var(--loss); }
+  .btn-small{ padding: 6px 10px; font-size: 12px; }
+
+  /* ---------- Stat cards ---------- */
+  .stats{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin: 28px 0;
+  }
+  .stat{
+    background: var(--surface);
+    padding: 18px 20px;
+  }
+  .stat-label{
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 10px;
+  }
+  .stat-value{
+    font-family: var(--font-mono);
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .stat-value.gain{ color: var(--gain); }
+  .stat-value.loss{ color: var(--loss); }
+  .stat-sub{ font-family: var(--font-mono); font-size: 11px; color: var(--text-faint); margin-top: 4px; }
+
+  @media (max-width: 720px){
+    .stats{ grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* ---------- Quick PNL row (Today / 7D / 30D / Lifetime) ---------- */
+  .quick-pnl{
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin: 28px 0;
+  }
+  .quick-pnl-cell{ background: var(--surface); padding: 18px 20px; }
+  .quick-pnl-label{
+    font-family: var(--font-display);
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+  }
+  .quick-pnl-label .highlight{
+    color: var(--text);
+    border-bottom: 1px dashed var(--text-faint);
+    padding-bottom: 5px;
+  }
+  .quick-pnl-value{
+    font-family: var(--font-mono);
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--text);
+  }
+  .quick-pnl-value.gain{ color: var(--gain); }
+  .quick-pnl-value.loss{ color: var(--loss); }
+  .quick-pnl-sub{ font-family: var(--font-mono); font-size: 13px; color: var(--text-muted); margin-top: 6px; }
+  .quick-pnl-sub.gain{ color: var(--gain); }
+  .quick-pnl-sub.loss{ color: var(--loss); }
+  @media (max-width: 900px){
+    .quick-pnl{ grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 480px){
+    .quick-pnl{ grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* ---------- Equity curve ---------- */
+  .panel{
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 28px;
+  }
+  .panel-head{
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .panel-title{
+    font-size: 14px; font-weight: 600;
+  }
+  .panel-title span{ color: var(--text-faint); font-family: var(--font-mono); font-weight: 400; font-size: 11px; margin-left: 8px; }
+  .panel-title .ext-icon{
+    display: inline-flex; margin-left: 8px; color: var(--text-faint); vertical-align: middle;
+  }
+  .chart-row{
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 20px;
+    margin-bottom: 28px;
+    align-items: stretch;
+  }
+  .chart-row > .panel{ margin-bottom: 0; display: flex; flex-direction: column; }
+  .chart-row .curve-box{
+    height: 340px;
+    display: flex;
+    flex-direction: column;
+    padding: 4px 8px 12px;
+  }
+  .chart-row .curve-box svg{ flex: 1 1 auto; min-height: 0; width: 100%; }
+  .chart-row #pnlRankingBox{
+    height: 340px;
+    overflow-y: auto;
+  }
+  @media (max-width: 900px){
+    .chart-row{ grid-template-columns: 1fr; }
+    .chart-row .curve-box, .chart-row #pnlRankingBox{ height: 300px; }
+  }
+  .pnl-rank-head{
+    display: grid; grid-template-columns: 1fr auto;
+    padding: 16px 20px 8px;
+    font-size: 13px; color: var(--text-faint);
+  }
+  .pnl-rank-row{
+    display: grid; grid-template-columns: 90px 1fr auto;
+    align-items: center; gap: 14px;
+    padding: 12px 20px;
+  }
+  .pnl-rank-name{ font-weight: 700; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pnl-rank-bar-track{ height: 13px; }
+  .pnl-rank-bar{ height: 100%; border-radius: 3px; min-width: 3px; }
+  .pnl-rank-bar.gain{ background: var(--gain); }
+  .pnl-rank-bar.loss{ background: var(--loss); }
+  .pnl-rank-value{ font-family: var(--font-mono); font-weight: 600; font-size: 14px; text-align: right; white-space: nowrap; }
+  .pnl-rank-value.gain{ color: var(--gain); }
+  .pnl-rank-value.loss{ color: var(--loss); }
+  .curve-axis-label{ font-family: var(--font-mono); font-size: 10.5px; fill: var(--text-faint); }
+  .curve-date-label{ font-family: var(--font-mono); font-size: 11.5px; color: var(--text-faint); }
+  .ga-updated{ font-family: var(--font-mono); font-size: 11px; color: var(--text-faint); white-space: nowrap; }
+  .curve-box{ padding: 4px 8px 12px; }
+
+  /* ---------- Trade log scroll container ---------- */
+  #tableWrap{
+    overflow-x: auto;
+    border-radius: 0 0 var(--radius) var(--radius);
+  }
+  #tableWrap table{ min-width: 100%; }
+
+  /* ---------- PNL Calendar ---------- */
+  .cal-nav{ display:flex; align-items:center; gap:10px; }
+  .view-toggle{
+    display:flex; gap:3px; background: var(--bg); border: 1px solid var(--border);
+    border-radius: 7px; padding: 3px;
+  }
+  .view-toggle-btn{
+    background:none; border:none; color: var(--text-faint); cursor:pointer;
+    padding: 5px 8px; border-radius: 5px; display:flex; align-items:center; justify-content:center;
+    transition: background .15s ease, color .15s ease;
+  }
+  .view-toggle-btn:hover{ color: var(--text); }
+  .view-toggle-btn.active{ background: var(--surface-2); color: var(--text); }
+  .cal-bar-box{ padding: 14px 20px 20px; }
+  .cal-bar-axis-label{ font-family: var(--font-mono); font-size: 10.5px; fill: var(--text-faint); }
+  .cal-bar-date-label{ font-family: var(--font-mono); font-size: 10px; fill: var(--text-faint); }
+  .cal-picker-pop{
+    display: none;
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+    z-index: 40;
+    width: 210px;
+  }
+  html[data-theme="glass"] .cal-picker-pop{
+    background: linear-gradient(160deg, rgba(255,255,255,0.14), rgba(255,255,255,0.04));
+    border: 1px solid rgba(255,255,255,0.35);
+    border-radius: 26px;
+    padding: 20px;
+    width: 260px;
+    backdrop-filter: blur(30px) saturate(180%);
+    -webkit-backdrop-filter: blur(30px) saturate(180%);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.4);
+  }
+  html[data-theme="glass"] .cal-picker-head{ margin-bottom: 16px; }
+  html[data-theme="glass"] .cal-picker-head span{
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+  }
+  html[data-theme="glass"] .cal-picker-head .icon-btn{
+    color: rgba(255,255,255,0.65);
+    font-size: 15px;
+  }
+  html[data-theme="glass"] .cal-picker-head .icon-btn:hover{
+    color: #fff;
+    background: rgba(255,255,255,0.12);
+  }
+  html[data-theme="glass"] .cal-picker-months{ gap: 10px; }
+  html[data-theme="glass"] .cal-picker-month-btn{
+    background: rgba(10,12,24,0.55);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 14px;
+    color: rgba(255,255,255,0.85);
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 15px;
+    padding: 16px 4px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 4px 10px rgba(0,0,0,0.25);
+    transition: border-color .15s ease, box-shadow .15s ease, transform .1s ease;
+  }
+  html[data-theme="glass"] .cal-picker-month-btn:hover{
+    border-color: rgba(255,255,255,0.3);
+    color: #fff;
+  }
+  html[data-theme="glass"] .cal-picker-month-btn.active{
+    background: rgba(10,132,255,0.16);
+    border-color: #0A84FF;
+    color: #4FC3FF;
+    box-shadow: 0 0 0 1px rgba(10,132,255,0.5), 0 0 22px rgba(10,132,255,0.55), inset 0 1px 0 rgba(255,255,255,0.15);
+  }
+  .cal-picker-pop.open{ display: block; }
+  .cal-picker-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom: 10px; }
+  .cal-picker-head span{ font-family: var(--font-mono); font-size: 13px; font-weight: 600; color: var(--text); }
+  .cal-picker-months{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .cal-picker-month-btn{
+    background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+    color: var(--text-muted); font-family: var(--font-mono); font-size: 12px;
+    padding: 8px 4px; cursor: pointer; text-align: center;
+  }
+  .cal-picker-month-btn:hover{ border-color: var(--text-faint); color: var(--text); }
+  .cal-picker-month-btn.active{ background: var(--accent-dim); border-color: var(--accent); color: var(--accent); font-weight: 700; }
+
+  /* ---------- Day detail modal ---------- */
+  .cal-cell.has-data{ cursor: pointer; transition: background .12s ease; }
+  .cal-cell.has-data:hover{ background: var(--surface-2); }
+  html[data-theme="glass"] .cal-cell.has-data:hover{ background: rgba(255,255,255,0.08); }
+  .day-trade-row{
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .day-trade-row:last-child{ border-bottom: none; }
+  .day-trade-main{ display:flex; align-items:center; gap: 8px; min-width:0; }
+  .day-trade-asset{ font-weight: 700; font-size: 13.5px; }
+  .day-trade-meta{ font-family: var(--font-mono); font-size: 11px; color: var(--text-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .day-trade-pnl{ font-family: var(--font-mono); font-weight: 600; font-size: 13.5px; text-align: right; white-space: nowrap; }
+  .day-trade-pnl.gain{ color: var(--gain); }
+  .day-trade-pnl.loss{ color: var(--loss); }
+  .day-detail-total{
+    display:flex; justify-content: space-between; align-items:center;
+    padding: 12px 0 4px; margin-top: 4px; border-top: 1px solid var(--border);
+    font-family: var(--font-mono); font-size: 12.5px; color: var(--text-faint);
+  }
+  .day-detail-total b{ font-size: 15px; }
+  .day-detail-total b.gain{ color: var(--gain); }
+  .day-detail-total b.loss{ color: var(--loss); }
+  .cal-month-label{ font-family: var(--font-mono); font-size: 12px; min-width: 60px; text-align:center; color: var(--text); }
+  .cal-grid{ display:grid; grid-template-columns: repeat(7, 1fr); }
+  .cal-dow{
+    text-align:center; padding:10px 4px; font-family: var(--font-mono); font-size: 11px;
+    color: var(--text-faint); border-bottom: 1px solid var(--border);
+  }
+  .cal-cell{
+    min-height: 76px; padding: 10px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    display:flex; flex-direction:column; gap:6px;
+  }
+  .cal-cell:nth-child(7n){ border-right: none; }
+  .cal-grid > .cal-cell:nth-last-child(-n+7){ border-bottom: none; }
+  .cal-cell.empty{ background: transparent; }
+  .cal-day-num{ font-family: var(--font-display); font-size: 14px; font-weight: 600; }
+  .cal-day-pnl{ font-family: var(--font-mono); font-size: 12px; color: var(--text-faint); }
+  .cal-day-pnl.gain{ color: var(--gain); }
+  .cal-day-pnl.loss{ color: var(--loss); }
+  @media (max-width: 640px){
+    .cal-cell{ min-height: 56px; padding: 6px; }
+    .cal-day-pnl{ font-size: 10px; }
+  }
+
+  /* ---------- Trade log ---------- */
+  table{ width: 100%; border-collapse: collapse; }
+  thead th{
+    text-align: left;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  tbody tr{
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+  tbody tr:last-child{ border-bottom: none; }
+  tbody tr:hover{ background: var(--surface-2); }
+  tbody td{
+    padding: 13px 16px;
+    font-size: 13px;
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+  td.asset{ font-weight: 600; }
+  td.mono, .mono{ font-family: var(--font-mono); }
+  .side-tag{
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    font-weight: 600;
+    padding: 3px 7px;
+    border-radius: 4px;
+    letter-spacing: 0.03em;
+  }
+  .side-long{ background: var(--gain-dim); color: var(--gain); }
+  .side-short{ background: var(--loss-dim); color: var(--loss); }
+  .status-open{ color: var(--accent); font-family: var(--font-mono); font-size: 11px; }
+  .status-closed{ color: var(--text-faint); font-family: var(--font-mono); font-size: 11px; }
+  .pnl-cell.gain{ color: var(--gain); }
+  .pnl-cell.loss{ color: var(--loss); }
+  .row-edge{
+    position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  }
+  .row-edge.gain{ background: var(--gain); }
+  .row-edge.loss{ background: var(--loss); }
+  .row-edge.open{ background: var(--accent); }
+  .notes-cell{
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--text-muted);
+    font-size: 12.5px;
+    white-space: nowrap;
+  }
+  .actions-cell{
+    text-align: right;
+    position: sticky;
+    right: 0;
+    background: var(--surface);
+    box-shadow: -8px 0 8px -8px rgba(0,0,0,0.35);
+  }
+  thead th:last-child{
+    position: sticky;
+    right: 0;
+    background: var(--surface);
+  }
+  tbody tr:hover .actions-cell{ background: var(--surface-2); }
+  html[data-theme="glass"] tbody tr:hover .actions-cell{ background: rgba(255,255,255,0.10); }
+  .icon-btn{
+    background: none; border: none; cursor: pointer;
+    color: var(--text-faint);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 4px 7px;
+    border-radius: 4px;
+  }
+  .icon-btn:hover{ color: var(--text); background: var(--border); }
+
+  .empty-state{
+    padding: 56px 20px;
+    text-align: center;
+    color: var(--text-muted);
+  }
+  .empty-state .glyph{
+    font-family: var(--font-mono);
+    color: var(--text-faint);
+    font-size: 26px;
+    margin-bottom: 10px;
+  }
+  .empty-state p{ font-size: 13.5px; margin-bottom: 18px; }
+
+  footer.zone{
+    display: flex; justify-content: flex-end; padding-top: 4px;
+  }
+
+  /* ---------- Modal ---------- */
+  .overlay{
+    position: fixed; inset: 0; background: rgba(6,7,10,0.72);
+    display: none; align-items: flex-start; justify-content: center;
+    padding: 60px 20px; overflow-y: auto; z-index: 50;
+  }
+  .overlay.open{ display: flex; }
+  .modal{
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    width: 100%; max-width: 460px;
+    padding: 26px;
+  }
+  .modal h2{ font-size: 17px; margin-bottom: 4px; }
+  .modal .modal-sub{ font-size: 12.5px; color: var(--text-faint); margin-bottom: 20px; font-family: var(--font-mono); }
+  .field{ margin-bottom: 16px; }
+  .field label{
+    display: block; font-family: var(--font-mono); font-size: 10.5px;
+    letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-faint);
+    margin-bottom: 7px;
+  }
+  .field input, .field textarea, .field select{
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 13.5px;
+    padding: 10px 12px;
+    outline: none;
+  }
+  .field input:focus, .field textarea:focus, .field select:focus{
+    border-color: var(--accent);
+  }
+  .field textarea{ resize: vertical; min-height: 60px; font-family: var(--font-display); }
+  .row-2{ display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .row-2 > .field{ min-width: 0; }
+  .side-toggle{ display: flex; gap: 8px; }
+  .side-toggle button{
+    flex: 1; padding: 10px; border-radius: 5px; border: 1px solid var(--border);
+    background: var(--bg); color: var(--text-muted); cursor: pointer;
+    font-family: var(--font-mono); font-weight: 600; font-size: 12.5px;
+  }
+  .side-toggle button.active[data-side="long"]{ border-color: var(--gain); color: var(--gain); background: var(--gain-dim); }
+  .side-toggle button.active[data-side="short"]{ border-color: var(--loss); color: var(--loss); background: var(--loss-dim); }
+  .modal-actions{ display: flex; justify-content: space-between; gap: 10px; margin-top: 22px; align-items: center; }
+  .err-msg{ font-family: var(--font-mono); font-size: 11.5px; color: var(--loss); margin-top: -8px; margin-bottom: 14px; min-height: 14px; }
+
+  .loading-note{ padding: 40px; text-align: center; color: var(--text-faint); font-family: var(--font-mono); font-size: 12px; }
+
+  /* ---------- Sync status ---------- */
+  .sync-pill{
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: var(--font-mono); font-size: 11px;
+    padding: 6px 10px; border-radius: 20px;
+    border: 1px solid var(--border);
+    color: var(--text-faint);
+    cursor: pointer;
+    background: var(--surface);
+    white-space: nowrap;
+  }
+  .sync-pill:hover{ border-color: var(--text-faint); }
+  .sync-dot{ width: 7px; height: 7px; border-radius: 50%; background: var(--text-faint); }
+  .sync-pill.connected .sync-dot{ background: var(--gain); }
+  .sync-pill.connected{ color: var(--gain); border-color: var(--gain-dim); }
+  .sync-pill.error .sync-dot{ background: var(--loss); }
+  .sync-pill.error{ color: var(--loss); border-color: var(--loss-dim); }
+  .header-actions{ display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+  .banner{
+    border: 1px solid var(--accent-dim);
+    background: linear-gradient(180deg, rgba(232,163,61,0.08), transparent);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    margin: 24px 0;
+    display: flex; justify-content: space-between; align-items: center; gap: 16px;
+    flex-wrap: wrap;
+  }
+  .banner-text{ font-size: 13px; color: var(--text-muted); max-width: 480px; }
+  .banner-text b{ color: var(--text); }
+
+  .sheet-modal .field small{
+    display: block; margin-top: 6px; color: var(--text-faint); font-family: var(--font-mono); font-size: 11px;
+  }
+  .disconnect-row{ margin-top: 4px; }
+
+  .account-row{
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 12px; border: 1px solid var(--border); border-radius: 5px;
+    margin-bottom: 8px; font-size: 13px;
+  }
+  .account-row.active{ border-color: var(--accent); background: var(--accent-dim); }
+  .account-row .acct-name{ display:flex; align-items:center; gap:8px; cursor:pointer; flex:1; }
+  .account-row .acct-name b{ font-family: var(--font-mono); font-size: 10px; color: var(--accent); }
+  .account-row .acct-count{ color: var(--text-faint); font-family: var(--font-mono); font-size: 11px; margin-left: 8px; }
+
+  .acct-overview-row{ display: none; } /* superseded by ga-summary / ga-rows below */
+
+  .ga-summary{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    background: transparent;
+    border-bottom: 1px solid var(--border);
+    margin-top: 18px;
+    padding: 4px 20px 24px;
+  }
+  .ga-metric{ background: var(--surface); padding: 20px 22px; border: 1px solid var(--border); border-radius: var(--radius); }
+  .ga-metric-label{
+    font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.07em;
+    text-transform: uppercase; color: var(--text-faint); margin-bottom: 14px;
+  }
+  .ga-metric-value{ font-family: var(--font-mono); font-size: 23px; font-weight: 600; line-height: 1.2; }
+  .ga-metric-value.gain{ color: var(--gain); }
+  .ga-metric-value.loss{ color: var(--loss); }
+  .ga-metric-sub{ font-family: var(--font-mono); font-size: 11.5px; color: var(--text-faint); margin-top: 8px; }
+  @media (max-width: 720px){ .ga-summary{ grid-template-columns: repeat(2, 1fr); } }
+
+  /* ---------- Profit Factor ring ---------- */
+  .pf-title-row{ display:flex; align-items:center; gap:6px; margin-bottom: 12px; }
+  .pf-title-text{
+    font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--text-faint);
+  }
+  .pf-block{ display:flex; align-items:center; gap:14px; margin-top: 2px; }
+  .pf-big{ font-family: var(--font-mono); font-size: 23px; font-weight: 600; color: var(--text); line-height: 1.2; }
+  .pf-sub{ font-family: var(--font-mono); font-size: 11.5px; color: var(--text-faint); margin-top: 8px; }
+  @media (max-width: 520px){
+    .pf-big{ font-size: 19px; }
+  }
+
+  .ga-rows{ display: flex; flex-direction: column; margin-top: 4px; }
+  .ga-row{
+    display: grid;
+    grid-template-columns: 1.4fr 100px auto;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+    background: var(--surface);
+    border: none;
+    border-bottom: 1px solid var(--border);
+    padding: 14px 20px;
+    cursor: pointer;
+    text-align: left;
+    color: var(--text);
+  }
+  .ga-rows .ga-row:last-child{ border-bottom: none; }
+  .ga-row:hover{ background: var(--surface-2); }
+  .ga-row.active{ background: var(--accent-dim); }
+  .ga-row-name{ font-size: 13.5px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .ga-row-name .active-dot{ width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+  .ga-row-sub{ font-family: var(--font-mono); font-size: 11px; color: var(--text-faint); margin-top: 4px; }
+  .ga-row-spark{ display: flex; align-items: center; justify-content: center; }
+  .ga-row-pnl{ display: flex; align-items: center; gap: 10px; justify-content: flex-end; }
+  .ga-row-pnl .pnl-num{ font-family: var(--font-mono); font-size: 15px; font-weight: 600; min-width: 90px; text-align: right; }
+  .ga-row-pnl.gain .pnl-num{ color: var(--gain); }
+  .ga-row-pnl.loss .pnl-num{ color: var(--loss); }
+  .pnl-chip{
+    font-family: var(--font-mono); font-size: 10.5px; font-weight: 600;
+    padding: 3px 8px; border-radius: 20px; white-space: nowrap;
+  }
+  .pnl-chip.gain{ background: var(--gain-dim); color: var(--gain); }
+  .pnl-chip.loss{ background: var(--loss-dim); color: var(--loss); }
+  .pnl-chip.flat{ background: var(--surface-2); color: var(--text-faint); }
+  @media (max-width: 640px){
+    .ga-row{ grid-template-columns: 1fr auto; }
+    .ga-row-spark{ display: none; }
+  }
+
+  a, button{ font-family: inherit; }
+
+  /* ---------- Mobile (iOS / Android phones) ---------- */
+  @media (max-width: 520px){
+    .wrap{ padding: 0 14px; }
+    header.top{ padding: 24px 0 18px; gap: 12px; }
+    .wordmark{ font-size: 23px; }
+    .subline{ font-size: 11.5px; }
+    .header-actions{ gap: 8px; }
+    .header-actions .btn{ padding: 9px 13px; font-size: 12.5px; }
+    .sync-pill{ font-size: 10.5px; padding: 5px 9px; }
+    .btn-primary#openAddBtn{ flex: 1 1 100%; text-align: center; }
+
+    .stat, .quick-pnl-cell, .ga-metric{ padding: 14px 14px; }
+    .stat-value{ font-size: 19px; }
+    .quick-pnl-value{ font-size: 20px; }
+
+    thead th, tbody td{ padding: 10px 10px; font-size: 12px; }
+
+    .overlay{ padding: 18px 10px; align-items: center; }
+    .modal{ padding: 18px; max-height: 92vh; overflow-y: auto; }
+    .modal h2{ font-size: 16px; }
+    .row-2{ grid-template-columns: 1fr; gap: 0; }
+
+    /* Prevent iOS Safari auto-zoom on focus by keeping inputs >= 16px */
+    .field input, .field textarea, .field select{ font-size: 16px; padding: 11px 12px; }
+    .field label{ font-size: 10px; }
+
+    .icon-btn{ padding: 7px 10px; font-size: 13px; }
+    .btn{ min-height: 40px; }
+    .side-toggle button{ padding: 12px; }
+
+    .ga-row-name{ font-size: 13px; }
+    .account-row{ flex-wrap: wrap; gap: 8px; }
+  }
+  @media (hover: none) and (pointer: coarse){
+    .btn, .icon-btn, .sync-pill, .side-toggle button, .ga-row, [data-switch-mini], .cal-nav button{
+      -webkit-tap-highlight-color: transparent;
+    }
+  }
+
+  :focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+</head>
+<body>
+
+  <div class="glass-bg" aria-hidden="true"><span></span><span></span><span></span></div>
+
+  <div class="ticker-wrap"><div class="ticker-track" id="tickerTrack"><span class="ticker-empty">Log your first trade to populate the tape —</span></div></div>
+
+  <div class="wrap">
+    <header class="top">
+      <div>
+        <div class="wordmark">SmartX<small>TRADING JOURNAL</small></div>
+        <div class="subline">T r a d e s,&nbsp; D i s c i p l i n e,&nbsp; E d g e</div>
+      </div>
+      <div class="header-actions">
+        <button class="sync-pill" id="accountPill"><span id="accountPillText">Main</span> ▾</button>
+        <button class="sync-pill" id="syncPill"><span class="sync-dot"></span><span id="syncPillText">Local only</span></button>
+        <button class="sync-pill" id="themeToggleBtn" title="Switch theme"><span id="themeToggleIcon">◐</span><span id="themeToggleText">Charcoal</span></button>
+        <button class="btn btn-primary" id="openAddBtn">+ New Trade</button>
+      </div>
+    </header>
+
+    <div class="banner" id="connectBanner" style="display:none;">
+      <div class="banner-text"><b>Your trades are only stored in this browser.</b> Connect a Google Sheet so your journal is backed up and synced across devices.</div>
+      <button class="btn btn-ghost btn-small" id="bannerConnectBtn">Connect Google Sheet</button>
+    </div>
+
+    <section class="stats" id="statsGrid"></section>
+
+    <section class="panel" id="accountsOverview" style="display:none;"></section>
+
+    <div class="chart-row">
+      <section class="panel">
+        <div class="panel-head">
+          <div class="panel-title">P&amp;L Chart</div>
+        </div>
+        <div class="curve-box" id="curveBox"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div class="panel-title">P&amp;L Ranking</div>
+        </div>
+        <div id="pnlRankingBox"></div>
+      </section>
+    </div>
+
+    <section class="panel" id="tradeLogPanel">
+      <div class="panel-head">
+        <div class="panel-title">Trade History<span id="logCount"></span></div>
+      </div>
+      <div id="tableWrap"></div>
+    </section>
+
+    <section class="quick-pnl" id="quickPnlPanel" style="display:none;"></section>
+
+    <section class="panel" id="pnlCalendarPanel" style="display:none;">
+      <div class="panel-head">
+        <div class="panel-title">Daily P&L<span id="calMonthSub"></span></div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div class="view-toggle" id="dailyViewToggle">
+            <button class="view-toggle-btn" data-view="bar" title="Bar chart">
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><rect x="1" y="9" width="3.2" height="6" rx="0.6" fill="currentColor"/><rect x="6.4" y="4" width="3.2" height="11" rx="0.6" fill="currentColor"/><rect x="11.8" y="7" width="3.2" height="8" rx="0.6" fill="currentColor"/></svg>
+            </button>
+            <button class="view-toggle-btn active" data-view="calendar" title="Calendar">
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.5" y="3" width="13" height="11" rx="1.5"/><line x1="1.5" y1="6.6" x2="14.5" y2="6.6"/><line x1="4.5" y1="1.3" x2="4.5" y2="4"/><line x1="11.5" y1="1.3" x2="11.5" y2="4"/></svg>
+            </button>
+          </div>
+          <div class="cal-nav" id="calNavWrap">
+            <button class="icon-btn" id="calPrevBtn">‹</button>
+            <span id="calMonthLabel" class="cal-month-label"></span>
+            <button class="icon-btn" id="calNextBtn">›</button>
+            <div style="position:relative; display:inline-flex;">
+              <button class="icon-btn" id="calPickerBtn" title="Jump to month" style="display:flex; align-items:center; justify-content:center; padding:6px 8px;">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.5" y="3" width="13" height="11" rx="1.5"/><line x1="1.5" y1="6.6" x2="14.5" y2="6.6"/><line x1="4.5" y1="1.3" x2="4.5" y2="4"/><line x1="11.5" y1="1.3" x2="11.5" y2="4"/></svg>
+              </button>
+              <div class="cal-picker-pop" id="calPickerPop">
+                <div class="cal-picker-head">
+                  <button type="button" class="icon-btn" id="calPickerYearPrev">‹</button>
+                  <span id="calPickerYearLabel"></span>
+                  <button type="button" class="icon-btn" id="calPickerYearNext">›</button>
+                </div>
+                <div class="cal-picker-months" id="calPickerMonths"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="cal-bar-box" id="calBarBox" style="display:none;"></div>
+    </section>
+
+    <footer class="zone">
+      <button class="btn btn-danger-ghost btn-small" id="clearAllBtn">Clear all trades</button>
+    </footer>
+  </div>
+
+  <div class="overlay" id="accountOverlay">
+    <div class="modal sheet-modal">
+      <h2>Accounts</h2>
+      <div class="modal-sub"></div>
+      <div id="accountList" style="margin-bottom:18px;"></div>
+      <div class="field" style="display:flex; gap:12px;">
+        <div style="flex:2;">
+          <label>New account name</label>
+          <input type="text" id="f_new_account" placeholder="e.g. SmartX Futures" autocomplete="off">
+        </div>
+        <div style="flex:1;">
+          <label>Assets *</label>
+          <input type="number" step="any" id="f_new_account_investment" placeholder="0" autocomplete="off" required>
+        </div>
+      </div>
+      <div class="err-msg" id="accountErr"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="accountCancelBtn">Close</button>
+        <button type="button" class="btn btn-primary" id="accountAddBtn">Create account</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="sheetOverlay">
+    <div class="modal sheet-modal">
+      <h2>Connect Google Sheet</h2>
+      <div class="modal-sub" id="sheetModalSub">Paste the Web App URL from your Apps Script deployment.</div>
+      <div class="field">
+        <label>Web App URL</label>
+        <input type="url" id="f_sheet_url" placeholder="https://script.google.com/macros/s/.../exec">
+        <small>Ends in /exec. Anyone with this link can read and write your journal, so keep it private.</small>
+      </div>
+      <div class="err-msg" id="sheetErr"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="sheetCancelBtn">Cancel</button>
+        <button type="button" class="btn btn-primary" id="sheetSaveBtn">Connect</button>
+      </div>
+      <div class="disconnect-row" id="disconnectRow" style="display:none;">
+        <button type="button" class="btn btn-danger-ghost btn-small" id="sheetDisconnectBtn">Disconnect and use local storage</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="dayDetailOverlay">
+    <div class="modal sheet-modal" id="dayDetailModal">
+      <h2 id="dayDetailTitle">Trades</h2>
+      <div class="modal-sub" id="dayDetailSub"></div>
+      <div id="dayDetailList" style="margin-bottom:6px;"></div>
+      <div class="day-detail-total" id="dayDetailTotal"></div>
+      <div class="modal-actions" style="justify-content:flex-end;">
+        <button type="button" class="btn btn-ghost" id="dayDetailCloseBtn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay">
+    <div class="modal">
+      <h2 id="modalTitle">New Trade</h2>
+      <div class="modal-sub" id="modalSub">Record what you actually did — this journal doesn't grade you.</div>
+      <form id="tradeForm">
+        <div class="field">
+          <label>Asset</label>
+          <input type="text" id="f_asset" placeholder="BTC" autocomplete="off" required>
+        </div>
+        <div class="field">
+          <label>Side</label>
+          <div class="side-toggle">
+            <button type="button" data-side="long" class="active">Long</button>
+            <button type="button" data-side="short">Short</button>
+          </div>
+        </div>
+        <div class="row-2">
+          <div class="field">
+            <label>Entry price ($)</label>
+            <input type="number" id="f_entry" step="any" placeholder="0.00" required>
+          </div>
+          <div class="field">
+            <label>Exit price ($)</label>
+            <input type="number" id="f_exit" step="any" placeholder="leave blank if open">
+          </div>
+        </div>
+        <div class="row-2">
+          <div class="field">
+            <label>Position size ($)</label>
+            <input type="number" id="f_size" step="any" placeholder="0.00" required>
+          </div>
+          <div class="field">
+            <label>Date</label>
+            <input type="date" id="f_date" required>
+          </div>
+        </div>
+        <div class="field">
+          <label>Notes</label>
+          <textarea id="f_notes" placeholder="Setup, reasoning, what you'd repeat or change..."></textarea>
+        </div>
+        <div class="err-msg" id="formErr"></div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" id="cancelBtn">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="saveBtn">Save trade</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const CACHE_KEY = 'ledger_trades_cache_v1';
+  const URL_KEY = 'ledger_sheet_url_v1';
+  const ACCOUNT_KEY = 'ledger_current_account_v1';
+  const THEME_KEY = 'ledger_theme_v1';
+  const DEFAULT_SHEET_URL = 'https://script.google.com/macros/s/AKfycbyt2bmk_-in789k5IjntE_wmJjOVmUQ2rqvAiEh_p2guT_t_s41AYWz23hv6vRO9TTk-Q/exec';
+  const PRIOR_DEFAULT_URLS = [
+    'https://script.google.com/macros/s/AKfycby7YX168AJwFDQZRCJdGMXFSF1y0_SfPh9GlodLaKU28iUY1t6YAZdLP5e-BHDTKjuLVQ/exec',
+    'https://script.google.com/macros/s/AKfycbwbdAQABgaWFpZheTAxDmMLfJcfzT5h59X4u7iE_N1iejA45n5KiRFWgV0T8Oeb1K0t2Q/exec'
+  ];
+  let trades = [];
+  let accounts = ['Main'];
+  let investments = {}; // { accountName: number }
+  let currentAccount = 'Main';
+  let calendarDate = new Date(); // month currently shown in the all-accounts PNL calendar
+  let dailyView = 'calendar'; // 'calendar' | 'bar'
+  let pickerYear = new Date().getFullYear();
+  let editingId = null;
+  let currentSide = 'long';
+  let sheetUrl = null;
+  let syncState = 'local'; // 'local' | 'connected' | 'error' | 'syncing'
+  let currentTheme = 'glass'; // 'dark' | 'glass'
+
+  const $ = (sel) => document.querySelector(sel);
+  const fmtMoney = (n) => (n < 0 ? '-$' : '$') + Math.abs(n).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+  const fmtPrice = (n) => '$' + Number(n).toLocaleString(undefined, {minimumFractionDigits: n < 1 ? 4 : 2, maximumFractionDigits: n < 1 ? 6 : 2});
+  const fmtPct = (n) => (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
+  const fmtUpdatedAt = (d) => d.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+  const uid = () => (crypto.randomUUID ? crypto.randomUUID() : 'id_' + Date.now() + Math.random().toString(16).slice(2));
+
+  function computePnl(t){
+    if(t.exit === null || t.exit === undefined || t.exit === '') return null;
+    const dir = t.side === 'long' ? 1 : -1;
+    const pct = ((t.exit - t.entry) / t.entry) * dir;
+    const pnl = t.size * pct;
+    return { pnl, pct: pct * 100 };
+  }
+
+  async function loadSheetUrl(){
+    try{
+      const res = await window.storage.get(URL_KEY, false);
+      sheetUrl = res && res.value ? res.value : null;
+    }catch(e){
+      sheetUrl = null;
+    }
+    if(sheetUrl && PRIOR_DEFAULT_URLS.includes(sheetUrl)){
+      sheetUrl = null; // was auto-set to an old default; let it fall through to the current one
+    }
+    if(!sheetUrl && DEFAULT_SHEET_URL){
+      sheetUrl = DEFAULT_SHEET_URL;
+      try{ await window.storage.set(URL_KEY, sheetUrl, false); }catch(e){ /* non-fatal */ }
+    }
+  }
+
+  async function saveSheetUrl(url){
+    sheetUrl = url;
+    try{
+      if(url){
+        await window.storage.set(URL_KEY, url, false);
+      }else{
+        await window.storage.delete(URL_KEY, false);
+      }
+    }catch(e){ console.error('Storage error', e); }
+  }
+
+  async function loadLocalCache(){
+    try{
+      const res = await window.storage.get(CACHE_KEY, false);
+      const parsed = res && res.value ? JSON.parse(res.value) : {};
+      return { trades: parsed.trades || [], accounts: parsed.accounts || ['Main'], investments: parsed.investments || {} };
+    }catch(e){
+      return { trades: [], accounts: ['Main'], investments: {} };
+    }
+  }
+
+  async function saveLocalCache(){
+    try{
+      await window.storage.set(CACHE_KEY, JSON.stringify({ trades, accounts, investments }), false);
+    }catch(e){ console.error('Storage error', e); }
+  }
+
+  async function loadCurrentAccount(){
+    try{
+      const res = await window.storage.get(ACCOUNT_KEY, false);
+      currentAccount = res && res.value ? res.value : 'Main';
+    }catch(e){
+      currentAccount = 'Main';
+    }
+  }
+
+  async function saveCurrentAccount(name){
+    currentAccount = name;
+    try{ await window.storage.set(ACCOUNT_KEY, name, false); }catch(e){ /* non-fatal */ }
+  }
+
+  const THEMES = ['dark', 'glass', 'apple'];
+
+  function applyTheme(){
+    document.documentElement.setAttribute('data-theme', currentTheme);
+    const icon = $('#themeToggleIcon');
+    const text = $('#themeToggleText');
+    if(currentTheme === 'glass'){
+      if(icon) icon.textContent = '◆';
+      if(text) text.textContent = 'Liquid';
+    }else if(currentTheme === 'apple'){
+      if(icon) icon.textContent = '○';
+      if(text) text.textContent = 'Crystal';
+    }else{
+      if(icon) icon.textContent = '◐';
+      if(text) text.textContent = 'Charcoal';
+    }
+  }
+
+  async function loadTheme(){
+    try{
+      const res = await window.storage.get(THEME_KEY, false);
+      currentTheme = (res && THEMES.includes(res.value)) ? res.value : 'glass';
+    }catch(e){
+      currentTheme = 'glass';
+    }
+    applyTheme();
+  }
+
+  async function setTheme(name){
+    currentTheme = THEMES.includes(name) ? name : 'glass';
+    applyTheme();
+    try{ await window.storage.set(THEME_KEY, currentTheme, false); }catch(e){ /* non-fatal */ }
+  }
+
+  $('#themeToggleBtn').addEventListener('click', () => {
+    const next = THEMES[(THEMES.indexOf(currentTheme) + 1) % THEMES.length];
+    setTheme(next);
+  });
+
+  async function loadTrades(){
+    await loadSheetUrl();
+    await loadCurrentAccount();
+    if(sheetUrl){
+      try{
+        const res = await fetch(sheetUrl + '?action=list', { method: 'GET' });
+        if(!res.ok) throw new Error('Bad response');
+        const data = await res.json();
+        trades = Array.isArray(data.trades) ? data.trades.map(normalizeTrade) : [];
+        accounts = normalizeAccounts(data.accounts);
+        investments = (data.investments && typeof data.investments === 'object') ? data.investments : {};
+        setSync('connected');
+        await saveLocalCache();
+        return;
+      }catch(e){
+        console.error('Sheet load error', e);
+        const cache = await loadLocalCache();
+        trades = cache.trades || [];
+        accounts = cache.accounts || accounts;
+        investments = cache.investments || {};
+        setSync('error');
+        return;
+      }
+    }
+    const cache = await loadLocalCache();
+    trades = cache.trades || [];
+    accounts = cache.accounts || accounts;
+    investments = cache.investments || {};
+    setSync('local');
+  }
+
+  function normalizeAccounts(list){
+    const fromTrades = trades.map(t => t.account).filter(Boolean);
+    const combined = Array.from(new Set([...(Array.isArray(list) ? list : []), ...fromTrades]));
+    return combined.length ? combined : ['Main'];
+  }
+
+  // Coerces whatever date shape the backend hands back (a real Date, an ISO
+  // timestamp, a verbose "Tue Jul 21 2026" string, etc.) into plain yyyy-MM-dd,
+  // using local date parts so the day never shifts across a UTC boundary.
+  function toISODate(v){
+    if(!v) return '';
+    if(typeof v === 'string' && /^\d{4}-\d{2}-\d{2}/.test(v)) return v.slice(0, 10);
+    const d = new Date(v);
+    if(isNaN(d)) return String(v);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
+  function normalizeTrade(t){
+    return {
+      id: String(t.id),
+      date: toISODate(t.date),
+      asset: t.asset,
+      side: t.side,
+      entry: Number(t.entry),
+      exit: (t.exit === '' || t.exit === null || t.exit === undefined) ? null : Number(t.exit),
+      size: Number(t.size),
+      notes: t.notes || '',
+      account: t.account || 'Main'
+    };
+  }
+
+  async function saveTrades(){
+    await saveLocalCache();
+    if(!sheetUrl) { setSync('local'); return; }
+    setSync('syncing');
+    try{
+      const res = await fetch(sheetUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'save_all', trades, accounts, investments })
+      });
+      if(!res.ok) throw new Error('Bad response');
+      setSync('connected');
+    }catch(e){
+      console.error('Sheet save error', e);
+      setSync('error');
+    }
+  }
+
+  function setSync(state){
+    syncState = state;
+    const pill = $('#syncPill');
+    const text = $('#syncPillText');
+    const banner = $('#connectBanner');
+    pill.classList.remove('connected', 'error');
+    if(state === 'connected'){
+      pill.classList.add('connected');
+      text.textContent = 'Sync Sheet';
+      banner.style.display = 'none';
+    }else if(state === 'error'){
+      pill.classList.add('error');
+      text.textContent = 'Sync error — using cache';
+      banner.style.display = 'none';
+    }else if(state === 'syncing'){
+      text.textContent = 'Syncing…';
+      banner.style.display = 'none';
+    }else{
+      text.textContent = 'Local only';
+      banner.style.display = sheetUrl ? 'none' : 'flex';
+    }
+  }
+
+  function getInvestment(name){
+    return Number(investments[name]) || 0;
+  }
+
+  async function setInvestment(name, amount){
+    const n = Number(amount);
+    investments[name] = isNaN(n) ? 0 : n;
+    await saveTrades();
+  }
+
+  // Sum of investment across whichever accounts are in view ("Main" = all accounts).
+  function investmentForView(){
+    if(currentAccount === 'Main') return getInvestment('Main');
+    return getInvestment(currentAccount);
+  }
+
+  function filteredTrades(){
+    // "Main" is the home view — it shows combined data across every account,
+    // not just trades tagged "Main". Other accounts still filter to themselves.
+    if(currentAccount === 'Main') return trades.slice();
+    return trades.filter(t => t.account === currentAccount);
+  }
+
+  function profitFactorRing(grossWin, grossLoss){
+    const size = 64, stroke = 11, r = (size - stroke) / 2, c = size / 2;
+    const circ = 2 * Math.PI * r;
+    const total = grossWin + grossLoss;
+    if(!total){
+      return `
+        <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+          <circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="var(--border)" stroke-width="${stroke}"/>
+        </svg>`;
+    }
+    const winLen = circ * grossWin / total;
+    const lossLen = circ * grossLoss / total;
+    return `
+      <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+        <circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="var(--border)" stroke-width="${stroke}"/>
+        <circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="var(--gain)" stroke-width="${stroke}"
+          stroke-dasharray="${winLen.toFixed(2)} ${(circ - winLen).toFixed(2)}" stroke-dashoffset="0"
+          stroke-linecap="round" transform="rotate(-90 ${c} ${c})"/>
+        <circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="var(--loss)" stroke-width="${stroke}"
+          stroke-dasharray="${lossLen.toFixed(2)} ${(circ - lossLen).toFixed(2)}" stroke-dashoffset="${(-winLen).toFixed(2)}"
+          stroke-linecap="round" transform="rotate(-90 ${c} ${c})"/>
+      </svg>`;
+  }
+
+  function profitFactorBlock(pfValue, grossWin, grossLoss, closedCount){
+    const hasData = closedCount > 0;
+    const valStr = hasData ? (pfValue === Infinity ? '∞' : pfValue.toFixed(2)) : '—';
+    return `
+      <div class="pf-title-row">
+        <span class="pf-title-text">Profit Factor</span>
+      </div>
+      <div class="pf-block">
+        ${profitFactorRing(grossWin, grossLoss)}
+        <div>
+          <div class="pf-big">${valStr}</div>
+          <div class="pf-sub">${hasData ? `<span style="color:var(--gain);">${fmtMoney(grossWin)}</span> / <span style="color:var(--loss);">-${fmtMoney(grossLoss)}</span>` : '—'}</div>
+        </div>
+      </div>
+    `;
+  }
+
+  function winRateBlock(winRatePct, winsCount, lossesCount, closedCount){
+    const hasData = closedCount > 0;
+    const valStr = hasData ? winRatePct.toFixed(0) + '%' : '—';
+    return `
+      <div class="pf-title-row">
+        <span class="pf-title-text">Win Rate</span>
+      </div>
+      <div class="pf-block">
+        ${gaugeChart(hasData ? winRatePct : 0)}
+        <div>
+          <div class="pf-big">${valStr}</div>
+          <div class="pf-sub">${hasData ? `<span style="color:var(--gain);">${winsCount} Win</span> / <span style="color:var(--loss);">${lossesCount} Loss</span>` : '—'}</div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderStats(){
+    const view = filteredTrades();
+    const closed = view.filter(t => computePnl(t) !== null);
+    const open = view.filter(t => computePnl(t) === null);
+    const results = closed.map(t => computePnl(t).pnl);
+    const netPnl = Number(results.reduce((a,b)=>a + Number(b.toFixed(2)),0).toFixed(2));
+    const wins = results.filter(r => r > 0);
+    const losses = results.filter(r => r <= 0);
+    const winRate = closed.length ? (wins.length / closed.length) * 100 : 0;
+    const grossWin = wins.reduce((a,b)=>a+b,0);
+    const grossLoss = Math.abs(losses.reduce((a,b)=>a+b,0));
+    const profitFactor = grossLoss > 0 ? (grossWin / grossLoss) : (grossWin > 0 ? Infinity : 0);
+    const investment = investmentForView();
+    const balance = investment + netPnl;
+
+    const cards = [
+      ...(currentAccount === 'Main' ? [] : [
+        {
+          label: 'Net P&L',
+          value: fmtMoney(netPnl),
+          cls: netPnl > 0 ? 'gain' : (netPnl < 0 ? 'loss' : ''),
+          sub: closed.length + ' closed trade' + (closed.length===1?'':'s')
+        }
+      ]),
+      ...(currentAccount === 'Main' ? [] : [
+        {
+          custom: true,
+          html: winRateBlock(winRate, wins.length, losses.length, closed.length)
+        }
+      ]),
+      ...(currentAccount === 'Main' ? [] : [
+        {
+          custom: true,
+          html: profitFactorBlock(profitFactor, grossWin, grossLoss, closed.length)
+        },
+        {
+          label: 'Open positions',
+          value: String(open.length),
+          cls: open.length ? 'gain' : '',
+          sub: view.length + ' Total Trades'
+        }
+      ]),
+      ...(currentAccount === 'Main' ? [] : [
+        {
+          label: 'Assets',
+          value: fmtMoney(investment),
+          cls: '',
+          sub: `deposited to ${currentAccount}`
+        },
+        {
+          label: 'Balance',
+          value: fmtMoney(balance),
+          cls: balance > investment ? 'gain' : (balance < investment ? 'loss' : ''),
+          sub: 'trades ± assets'
+        }
+      ])
+    ];
+
+    $('#statsGrid').style.display = cards.length ? '' : 'none';
+    $('#statsGrid').innerHTML = cards.map(c => c.custom ? `
+      <div class="stat pf-stat">${c.html}</div>
+    ` : `
+      <div class="stat">
+        <div class="stat-label">${c.label}</div>
+        <div class="stat-value ${c.cls}">${c.value}</div>
+        <div class="stat-sub">${c.sub}</div>
+      </div>
+    `).join('');
+  }
+
+  function niceScale(min, max, tickCount){
+    if(min === max){ min -= 1; max += 1; }
+    const range = max - min;
+    const roughStep = range / tickCount;
+    const mag = Math.pow(10, Math.floor(Math.log10(roughStep)));
+    const norm = roughStep / mag;
+    let step;
+    if(norm < 1.5) step = 1 * mag;
+    else if(norm < 3) step = 2 * mag;
+    else if(norm < 7) step = 5 * mag;
+    else step = 10 * mag;
+    const niceMin = Math.floor(min / step) * step;
+    const niceMax = Math.ceil(max / step) * step;
+    const ticks = [];
+    for(let v = niceMin; v <= niceMax + step * 1e-6; v += step) ticks.push(Math.round(v / step) * step);
+    return { min: niceMin, max: niceMax, ticks, step };
+  }
+
+  function renderCurve(){
+    const closed = filteredTrades()
+      .filter(t => computePnl(t) !== null)
+      .slice()
+      .sort((a,b) => new Date(a.date) - new Date(b.date));
+
+    const box = $('#curveBox');
+    if(closed.length < 2){
+      box.innerHTML = `<div class="loading-note">Close at least two trades to draw a curve.</div>`;
+      return;
+    }
+
+    let cum = 0;
+    const points = [{ date: closed[0].date, val: 0 }, ...closed.map(t => ({ date: t.date, val: (cum += computePnl(t).pnl) }))];
+    const vals = points.map(p => p.val);
+
+    const w = 1000, h = 300, padL = 48, padR = 14, padT = 18, padB = 34;
+    const plotW = w - padL - padR, plotH = h - padT - padB;
+
+    const { min, max, ticks } = niceScale(Math.min(...vals, 0), Math.max(...vals, 0), 5);
+    const range = (max - min) || 1;
+    const stepX = plotW / (points.length - 1);
+    const xAt = i => padL + i * stepX;
+    const yAt = v => padT + plotH - ((v - min) / range) * plotH;
+    const zeroY = yAt(0);
+    const coords = points.map((p, i) => [xAt(i), yAt(p.val)]);
+    const tickLabel = (t) => (Math.abs(t % 1) < 1e-9 ? t.toFixed(0) : t.toFixed(1));
+
+    // group consecutive points into color runs based on sign of the trailing point
+    const segments = [];
+    for(let i = 0; i < coords.length - 1; i++){
+      const color = points[i+1].val >= 0 ? 'gain' : 'loss';
+      const last = segments[segments.length - 1];
+      if(last && last.color === color){
+        last.pts.push(coords[i+1]);
+      }else{
+        segments.push({ color, pts: [coords[i], coords[i+1]] });
+      }
+    }
+
+    let defs = '', shapes = '';
+    segments.forEach((seg, idx) => {
+      const colorVar = seg.color === 'gain' ? 'var(--gain)' : 'var(--loss)';
+      const ys = seg.pts.map(p => p[1]);
+      const extremeY = seg.color === 'gain' ? Math.min(...ys) : Math.max(...ys);
+      const gid = `curveGrad${idx}`;
+      defs += `
+        <linearGradient id="${gid}" x1="0" y1="${zeroY.toFixed(1)}" x2="0" y2="${extremeY.toFixed(1)}" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="${colorVar}" stop-opacity="0"/>
+          <stop offset="100%" stop-color="${colorVar}" stop-opacity="0.4"/>
+        </linearGradient>`;
+      const lineD = seg.pts.map((c,i) => (i===0?'M':'L') + c[0].toFixed(1) + ',' + c[1].toFixed(1)).join(' ');
+      const firstX = seg.pts[0][0].toFixed(1), lastX = seg.pts[seg.pts.length-1][0].toFixed(1);
+      const areaD = `${lineD} L${lastX},${zeroY.toFixed(1)} L${firstX},${zeroY.toFixed(1)} Z`;
+      shapes += `<path d="${areaD}" fill="url(#${gid})" stroke="none"/>`;
+      shapes += `<path class="curve-line-seg" d="${lineD}" fill="none" stroke="${colorVar}" stroke-width="2"/>`;
+      shapes += seg.pts.map(c => `<circle cx="${c[0].toFixed(1)}" cy="${c[1].toFixed(1)}" r="1.6" fill="${colorVar}"/>`).join('');
+    });
+
+    const gridLines = ticks.map(t => {
+      const y = yAt(t);
+      return `
+        <line x1="${padL}" y1="${y.toFixed(1)}" x2="${w-padR}" y2="${y.toFixed(1)}" stroke="var(--border)" stroke-width="1" stroke-dasharray="3 4"/>
+        <text x="${padL - 10}" y="${(y+3.5).toFixed(1)}" text-anchor="end" class="curve-axis-label">${tickLabel(t)}</text>`;
+    }).join('');
+
+    box.innerHTML = `
+      <svg viewBox="0 0 ${w} ${h}" style="width:100%; height:100%; display:block;">
+        <defs>${defs}</defs>
+        ${gridLines}
+        ${shapes}
+      </svg>
+      <div style="display:flex; justify-content:space-between; padding:6px 14px 0 48px;">
+        <span class="curve-date-label">${points[0].date}</span>
+        <span class="curve-date-label">${points[points.length-1].date}</span>
+      </div>
+    `;
+
+    box.querySelectorAll('.curve-line-seg').forEach(path => {
+      const len = path.getTotalLength();
+      path.style.strokeDasharray = len;
+      path.style.strokeDashoffset = len;
+      path.getBoundingClientRect();
+      path.style.transition = 'stroke-dashoffset 1.1s cubic-bezier(.4,0,.2,1)';
+      path.style.strokeDashoffset = '0';
+    });
+  }
+
+  function renderTicker(){
+    const track = $('#tickerTrack');
+    const view = filteredTrades();
+    if(!view.length){
+      track.innerHTML = `<span class="ticker-empty">Log your first trade to populate the tape —</span>`;
+      return;
+    }
+    const items = view.slice().reverse().slice(0, 12).map(t => {
+      const r = computePnl(t);
+      const cls = r === null ? '' : (r.pnl >= 0 ? 'up' : 'down');
+      const val = r === null ? 'OPEN' : fmtPct(r.pct);
+      return `<span class="ticker-item ${cls}"><b>${escapeHtml(t.asset)}</b> ${t.side.toUpperCase()} ${val}</span>`;
+    }).join('');
+    track.innerHTML = items + items; // duplicate for seamless loop
+  }
+
+  function renderTable(){
+    const wrap = $('#tableWrap');
+    const view = filteredTrades();
+    $('#logCount').textContent = view.length ? `${view.length} trade${view.length===1?'':'s'}` : '';
+
+    if(!view.length){
+      wrap.innerHTML = `
+        <div class="empty-state">
+          <div class="glyph">[ ]</div>
+          <p>${currentAccount === 'Main' ? 'No trades logged yet. Select an account to log your first position.' : `No trades logged yet in "${escapeHtml(currentAccount)}". Open your first position below.`}</p>
+          ${currentAccount === 'Main' ? '' : '<button class="btn btn-primary" id="emptyAddBtn">+ New Trade</button>'}
+        </div>`;
+      if(currentAccount !== 'Main') $('#emptyAddBtn').addEventListener('click', () => openModal());
+      return;
+    }
+
+    const sorted = view.slice().sort((a,b) => new Date(b.date) - new Date(a.date));
+
+    wrap.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th><th>Asset</th><th>Side</th><th>Entry</th><th>Exit</th>
+            <th>Size</th><th>P&L</th><th>Return</th><th>Status</th><th>Notes</th><th></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${sorted.map(rowHtml).join('')}
+        </tbody>
+      </table>
+    `;
+
+    sorted.forEach(t => {
+      const editBtn = wrap.querySelector(`[data-edit="${t.id}"]`);
+      const delBtn = wrap.querySelector(`[data-del="${t.id}"]`);
+      if(editBtn) editBtn.addEventListener('click', () => openModal(t.id));
+      if(delBtn) delBtn.addEventListener('click', () => deleteTrade(t.id));
+    });
+  }
+
+  function rowHtml(t){
+    const r = computePnl(t);
+    const edgeCls = r === null ? 'open' : (r.pnl >= 0 ? 'gain' : 'loss');
+    const pnlCls = r === null ? '' : (r.pnl >= 0 ? 'gain' : 'loss');
+    return `
+      <tr>
+        <td style="position:relative;"><span class="row-edge ${edgeCls}"></span><span class="mono">${t.date}</span></td>
+        <td class="asset">${escapeHtml(t.asset)}</td>
+        <td><span class="side-tag side-${t.side}">${t.side.toUpperCase()}</span></td>
+        <td class="mono">${fmtPrice(t.entry)}</td>
+        <td class="mono">${t.exit !== null && t.exit !== undefined && t.exit !== '' ? fmtPrice(t.exit) : '—'}</td>
+        <td class="mono">${fmtMoney(t.size)}</td>
+        <td class="mono pnl-cell ${pnlCls}">${r === null ? '—' : fmtMoney(r.pnl)}</td>
+        <td class="mono pnl-cell ${pnlCls}">${r === null ? '—' : fmtPct(r.pct)}</td>
+        <td>${r === null ? '<span class="status-open">OPEN</span>' : '<span class="status-closed">CLOSED</span>'}</td>
+        <td class="notes-cell" title="${escapeHtml(t.notes || '')}">${escapeHtml(t.notes || '—')}</td>
+        <td class="actions-cell">
+          <button class="icon-btn" data-edit="${t.id}">edit</button>
+          <button class="icon-btn" data-del="${t.id}">del</button>
+        </td>
+      </tr>
+    `;
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function renderPnlRanking(){
+    const box = $('#pnlRankingBox');
+    const closed = filteredTrades().filter(t => computePnl(t) !== null);
+
+    if(!closed.length){
+      box.innerHTML = `<div class="loading-note">Close a trade to see contract rankings.</div>`;
+      return;
+    }
+
+    const byAsset = {};
+    closed.forEach(t => {
+      byAsset[t.asset] = (byAsset[t.asset] || 0) + computePnl(t).pnl;
+    });
+
+    const rows = Object.entries(byAsset)
+      .map(([asset, pnl]) => ({ asset, pnl: Number(pnl.toFixed(2)) }))
+      .sort((a, b) => Math.abs(b.pnl) - Math.abs(a.pnl));
+
+    const maxAbs = Math.max(...rows.map(r => Math.abs(r.pnl)), 1);
+
+    box.innerHTML = `
+      <div class="pnl-rank-head">
+        <span>Contracts</span>
+        <span>P&amp;L</span>
+      </div>
+      ${rows.map(r => {
+        const cls = r.pnl >= 0 ? 'gain' : 'loss';
+        const widthPct = Math.max((Math.abs(r.pnl) / maxAbs) * 100, 2);
+        const valStr = `${r.pnl > 0 ? '+' : ''}${r.pnl.toFixed(2)} USD`;
+        return `
+          <div class="pnl-rank-row">
+            <div class="pnl-rank-name">${escapeHtml(r.asset)}</div>
+            <div class="pnl-rank-bar-track"><div class="pnl-rank-bar ${cls}" style="width:${widthPct.toFixed(1)}%;"></div></div>
+            <div class="pnl-rank-value ${cls}">${valStr}</div>
+          </div>`;
+      }).join('')}
+    `;
+  }
+
+  function renderAll(){
+    renderAccountPill();
+    renderStats();
+    renderCurve();
+    renderPnlRanking();
+    renderTicker();
+    $('#tradeLogPanel').style.display = currentAccount === 'Main' ? 'none' : '';
+    $('#pnlCalendarPanel').style.display = currentAccount === 'Main' ? '' : 'none';
+    $('#quickPnlPanel').style.display = currentAccount === 'Main' ? '' : 'none';
+    if(currentAccount === 'Main'){ renderQuickPnl(); renderDailyPnlSection(); } else renderTable();
+    renderAccountsOverview();
+  }
+
+  function renderPnlCalendar(){
+    const year = calendarDate.getFullYear();
+    const month = calendarDate.getMonth(); // 0-indexed
+    const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    $('#calMonthLabel').textContent = `${monthNames[month]} ${year}`;
+
+    // Sum closed-trade PNL per calendar day (YYYY-MM-DD) across every account.
+    const pnlByDay = {};
+    trades.forEach(t => {
+      const pnl = computePnl(t);
+      if(pnl === null) return;
+      pnlByDay[t.date] = (pnlByDay[t.date] || 0) + pnl.pnl;
+    });
+
+    const firstOfMonth = new Date(year, month, 1);
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    // JS getDay(): 0=Sun..6=Sat. Convert to Mon-first index (0=Mon..6=Sun).
+    const leadBlanks = (firstOfMonth.getDay() + 6) % 7;
+
+    const dows = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+    let html = dows.map(d => `<div class="cal-dow">${d}</div>`).join('');
+
+    for(let i = 0; i < leadBlanks; i++){
+      html += `<div class="cal-cell empty"></div>`;
+    }
+    for(let day = 1; day <= daysInMonth; day++){
+      const iso = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      const hasData = Object.prototype.hasOwnProperty.call(pnlByDay, iso);
+      const val = hasData ? pnlByDay[iso] : null;
+      const cls = val > 0 ? 'gain' : (val < 0 ? 'loss' : '');
+      const label = val === null ? '--' : fmtMoney(val);
+      html += `
+        <div class="cal-cell ${hasData ? 'has-data' : ''}" ${hasData ? `data-date="${iso}"` : ''}>
+          <div class="cal-day-num">${day}</div>
+          <div class="cal-day-pnl ${cls}">${label}</div>
+        </div>`;
+    }
+    // trailing blanks to complete the final week row
+    const totalCells = leadBlanks + daysInMonth;
+    const trailBlanks = (7 - (totalCells % 7)) % 7;
+    for(let i = 0; i < trailBlanks; i++){
+      html += `<div class="cal-cell empty"></div>`;
+    }
+
+    $('#calGrid').innerHTML = html;
+    $('#calGrid').querySelectorAll('[data-date]').forEach(cell => {
+      cell.addEventListener('click', () => openDayDetail(cell.dataset.date));
+    });
+  }
+
+  function openDayDetail(iso){
+    const dayTrades = trades.filter(t => t.date === iso && computePnl(t) !== null);
+    if(!dayTrades.length) return;
+    const d = new Date(iso + 'T00:00:00');
+    const dateLabel = d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+    const netPnl = dayTrades.reduce((s, t) => s + Number(computePnl(t).pnl.toFixed(2)), 0);
+    const netCls = netPnl > 0 ? 'gain' : (netPnl < 0 ? 'loss' : '');
+
+    $('#dayDetailTitle').textContent = dateLabel;
+    $('#dayDetailSub').textContent = `${dayTrades.length} trade${dayTrades.length===1?'':'s'} closed`;
+    $('#dayDetailList').innerHTML = dayTrades.map(t => {
+      const r = computePnl(t);
+      const cls = r.pnl >= 0 ? 'gain' : 'loss';
+      return `
+        <div class="day-trade-row">
+          <div class="day-trade-main">
+            <span class="side-tag side-${t.side}">${t.side.toUpperCase()}</span>
+            <span class="day-trade-asset">${escapeHtml(t.asset)}</span>
+          </div>
+          <div class="day-trade-meta">${escapeHtml(t.account || 'Main')} · ${fmtPrice(t.entry)} → ${fmtPrice(t.exit)}</div>
+          <div class="day-trade-pnl ${cls}">${fmtMoney(r.pnl)}</div>
+        </div>`;
+    }).join('');
+    $('#dayDetailTotal').innerHTML = `
+      <span>Net P&amp;L</span>
+      <b class="${netCls}">${fmtMoney(netPnl)}</b>
+    `;
+
+    $('#dayDetailOverlay').classList.add('open');
+  }
+
+  function closeDayDetail(){
+    $('#dayDetailOverlay').classList.remove('open');
+  }
+
+  $('#dayDetailCloseBtn').addEventListener('click', closeDayDetail);
+  $('#dayDetailOverlay').addEventListener('click', (e) => { if(e.target.id === 'dayDetailOverlay') closeDayDetail(); });
+
+  function renderDailyPnlSection(){
+    const isCal = dailyView === 'calendar';
+    $('#calGrid').style.display = isCal ? '' : 'none';
+    $('#calBarBox').style.display = isCal ? 'none' : '';
+    $('#calNavWrap').style.display = isCal ? '' : 'none';
+    document.querySelectorAll('.view-toggle-btn').forEach(b => b.classList.toggle('active', b.dataset.view === dailyView));
+    if(isCal) renderPnlCalendar(); else renderPnlBarChart();
+  }
+
+  function renderPnlBarChart(){
+    const box = $('#calBarBox');
+    const closed = trades.filter(t => computePnl(t) !== null);
+    if(!closed.length){
+      box.innerHTML = `<div class="loading-note">Close a trade to see daily P&amp;L bars.</div>`;
+      return;
+    }
+
+    const pnlByDay = {};
+    closed.forEach(t => { pnlByDay[t.date] = (pnlByDay[t.date] || 0) + computePnl(t).pnl; });
+
+    const numDays = 30;
+    const days = [];
+    for(let i = numDays - 1; i >= 0; i--){
+      days.push(localISO(new Date(Date.now() - i * 86400000)));
+    }
+    const vals = days.map(d => Number((pnlByDay[d] || 0).toFixed(2)));
+
+    const w = 1000, h = 300, padL = 34, padR = 34, padT = 18, padB = 46;
+    const plotW = w - padL - padR, plotH = h - padT - padB;
+    const { min, max, ticks } = niceScale(Math.min(...vals, 0), Math.max(...vals, 0), 4);
+    const range = (max - min) || 1;
+    const yAt = v => padT + plotH - ((v - min) / range) * plotH;
+    const zeroY = yAt(0);
+    const tickLabel = (t) => (Math.abs(t % 1) < 1e-9 ? t.toFixed(0) : t.toFixed(1));
+
+    const slotW = plotW / days.length;
+    const barW = Math.max(slotW * 0.5, 3);
+
+    const gridLines = ticks.map(t => {
+      const y = yAt(t);
+      return `
+        <line x1="${padL}" y1="${y.toFixed(1)}" x2="${w-padR}" y2="${y.toFixed(1)}" stroke="var(--border)" stroke-width="1" stroke-dasharray="3 4"/>
+        <text x="${padL - 10}" y="${(y+3.5).toFixed(1)}" text-anchor="end" class="cal-bar-axis-label">${tickLabel(t)}</text>
+        <text x="${w-padR+10}" y="${(y+3.5).toFixed(1)}" text-anchor="start" class="cal-bar-axis-label">${tickLabel(t)}</text>`;
+    }).join('');
+
+    const bars = days.map((d, i) => {
+      const v = vals[i];
+      const cx = padL + slotW * i + slotW / 2;
+      const barY = v >= 0 ? yAt(v) : zeroY;
+      const barH = Math.max(Math.abs(yAt(v) - zeroY), v !== 0 ? 2 : 0);
+      const color = v > 0 ? 'var(--gain)' : (v < 0 ? 'var(--loss)' : 'var(--border)');
+      if(barH <= 0) return '';
+      return `<rect x="${(cx - barW/2).toFixed(1)}" y="${barY.toFixed(1)}" width="${barW.toFixed(1)}" height="${barH.toFixed(1)}" rx="${Math.min(barW/2, 3).toFixed(1)}" fill="${color}"/>`;
+    }).join('');
+
+    const dateLabels = days.map((d, i) => {
+      if(i % 2 !== 0) return '';
+      const cx = padL + slotW * i + slotW / 2;
+      const short = d.slice(5).replace('-', '-');
+      return `<text x="0" y="0" text-anchor="end" class="cal-bar-date-label" transform="translate(${cx.toFixed(1)}, ${(h - padB + 14)}) rotate(-35)">${short}</text>`;
+    }).join('');
+
+    box.innerHTML = `
+      <svg viewBox="0 0 ${w} ${h}" style="width:100%; height:300px; display:block;">
+        ${gridLines}
+        <line x1="${padL}" y1="${zeroY.toFixed(1)}" x2="${w-padR}" y2="${zeroY.toFixed(1)}" stroke="var(--border)" stroke-width="1"/>
+        ${bars}
+        ${dateLabels}
+      </svg>
+    `;
+  }
+
+  document.querySelectorAll('.view-toggle-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      dailyView = btn.dataset.view;
+      renderDailyPnlSection();
+    });
+  });
+
+  function localISO(d){
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
+  function renderQuickPnl(){
+    const box = $('#quickPnlPanel');
+    const closed = trades.filter(t => computePnl(t) !== null);
+    const totalInvestment = accounts.reduce((s, name) => s + getInvestment(name), 0);
+
+    const today = localISO(new Date());
+    const d7 = localISO(new Date(Date.now() - 6 * 86400000));
+    const d30 = localISO(new Date(Date.now() - 29 * 86400000));
+    const d90 = localISO(new Date(Date.now() - 89 * 86400000));
+    const d180 = localISO(new Date(Date.now() - 179 * 86400000));
+    const d365 = localISO(new Date(Date.now() - 364 * 86400000));
+
+    const sumRange = (fromISO, toISO) => closed
+      .filter(t => t.date >= fromISO && t.date <= toISO)
+      .reduce((s, t) => s + Number(computePnl(t).pnl.toFixed(2)), 0);
+
+    const todayPnl = sumRange(today, today);
+    const pnl7 = sumRange(d7, today);
+    const pnl30 = sumRange(d30, today);
+    const pnl90 = sumRange(d90, today);
+    const pnl180 = sumRange(d180, today);
+    const pnl365 = sumRange(d365, today);
+
+    const sign = (n) => n > 0 ? '+' : '';
+    const cls = (n) => n > 0 ? 'gain' : (n < 0 ? 'loss' : '');
+    const pctStr = (v) => {
+      if(totalInvestment <= 0) return '—';
+      const p = (v / totalInvestment) * 100;
+      return `${sign(p)}${p.toFixed(2)}%`;
+    };
+    const usdStr = (v) => `${sign(v)}${v.toFixed(2)} USD`;
+
+    box.innerHTML = `
+      <div class="quick-pnl-cell">
+        <div class="quick-pnl-label">Today's PNL</div>
+        <div class="quick-pnl-value ${cls(todayPnl)}">${pctStr(todayPnl)}</div>
+        <div class="quick-pnl-sub ${cls(todayPnl)}">${usdStr(todayPnl)}</div>
+      </div>
+      <div class="quick-pnl-cell">
+        <div class="quick-pnl-label">7D PNL</div>
+        <div class="quick-pnl-value ${cls(pnl7)}">${pctStr(pnl7)}</div>
+        <div class="quick-pnl-sub ${cls(pnl7)}">${usdStr(pnl7)}</div>
+      </div>
+      <div class="quick-pnl-cell">
+        <div class="quick-pnl-label">30D PNL</div>
+        <div class="quick-pnl-value ${cls(pnl30)}">${pctStr(pnl30)}</div>
+        <div class="quick-pnl-sub ${cls(pnl30)}">${usdStr(pnl30)}</div>
+      </div>
+      <div class="quick-pnl-cell">
+        <div class="quick-pnl-label">3M PNL</div>
+        <div class="quick-pnl-value ${cls(pnl90)}">${pctStr(pnl90)}</div>
+        <div class="quick-pnl-sub ${cls(pnl90)}">${usdStr(pnl90)}</div>
+      </div>
+      <div class="quick-pnl-cell">
+        <div class="quick-pnl-label">6M PNL</div>
+        <div class="quick-pnl-value ${cls(pnl180)}">${pctStr(pnl180)}</div>
+        <div class="quick-pnl-sub ${cls(pnl180)}">${usdStr(pnl180)}</div>
+      </div>
+      <div class="quick-pnl-cell">
+        <div class="quick-pnl-label">1Y PNL</div>
+        <div class="quick-pnl-value ${cls(pnl365)}">${pctStr(pnl365)}</div>
+        <div class="quick-pnl-sub ${cls(pnl365)}">${usdStr(pnl365)}</div>
+      </div>
+    `;
+  }
+
+  $('#calPrevBtn').addEventListener('click', () => {
+    calendarDate = new Date(calendarDate.getFullYear(), calendarDate.getMonth() - 1, 1);
+    renderPnlCalendar();
+  });
+  $('#calNextBtn').addEventListener('click', () => {
+    calendarDate = new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 1);
+    renderPnlCalendar();
+  });
+  $('#calPickerBtn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    const pop = $('#calPickerPop');
+    if(pop.classList.contains('open')) closeCalPicker(); else openCalPicker();
+  });
+  $('#calPickerYearPrev').addEventListener('click', (e) => { e.stopPropagation(); pickerYear--; renderCalPickerPop(); });
+  $('#calPickerYearNext').addEventListener('click', (e) => { e.stopPropagation(); pickerYear++; renderCalPickerPop(); });
+  $('#calPickerPop').addEventListener('click', (e) => e.stopPropagation());
+  document.addEventListener('click', (e) => {
+    const pop = $('#calPickerPop');
+    if(pop && pop.classList.contains('open')) closeCalPicker();
+  });
+
+  function openCalPicker(){
+    pickerYear = calendarDate.getFullYear();
+    renderCalPickerPop();
+    $('#calPickerPop').classList.add('open');
+  }
+  function closeCalPicker(){
+    $('#calPickerPop').classList.remove('open');
+  }
+  function renderCalPickerPop(){
+    $('#calPickerYearLabel').textContent = pickerYear;
+    const monthNamesShort = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    $('#calPickerMonths').innerHTML = monthNamesShort.map((m, i) => {
+      const active = pickerYear === calendarDate.getFullYear() && i === calendarDate.getMonth();
+      return `<button type="button" class="cal-picker-month-btn ${active ? 'active' : ''}" data-month="${i}">${m}</button>`;
+    }).join('');
+    $('#calPickerMonths').querySelectorAll('[data-month]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        calendarDate = new Date(pickerYear, Number(btn.dataset.month), 1);
+        closeCalPicker();
+        renderPnlCalendar();
+      });
+    });
+  }
+
+  function miniSparkline(closedSorted){
+    const w = 100, h = 32, pad = 2;
+    if(closedSorted.length < 2){
+      return `<svg viewBox="0 0 ${w} ${h}" style="width:${w}px;height:${h}px;"><line x1="${pad}" y1="${h/2}" x2="${w-pad}" y2="${h/2}" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="2 3"/></svg>`;
+    }
+    let cum = 0;
+    const points = [0, ...closedSorted.map(t => (cum += computePnl(t).pnl))];
+    const min = Math.min(...points, 0);
+    const max = Math.max(...points, 0);
+    const range = (max - min) || 1;
+    const stepX = (w - pad*2) / (points.length - 1);
+    const coords = points.map((p, i) => {
+      const x = pad + i * stepX;
+      const y = h - pad - ((p - min) / range) * (h - pad*2);
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    });
+    const positive = points[points.length-1] >= 0;
+    const color = positive ? 'var(--gain)' : 'var(--loss)';
+    return `<svg viewBox="0 0 ${w} ${h}" style="width:${w}px;height:${h}px;"><polyline points="${coords.join(' ')}" fill="none" stroke="${color}" stroke-width="1.75" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
+  }
+
+  function gaugeChart(percent){
+    const size = 64, r = 24, stroke = 8;
+    const cx = size / 2, cy = size / 2 + 8;
+    const arcLen = Math.PI * r; // half-circumference
+    const p = Math.max(0, Math.min(100, percent));
+    const fillLen = arcLen * (p / 100);
+    const d = `M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`;
+    const angleDeg = 180 - (p / 100) * 180;
+    const angleRad = angleDeg * Math.PI / 180;
+    const needleLen = r - 6;
+    const nx = cx + needleLen * Math.cos(angleRad);
+    const ny = cy - needleLen * Math.sin(angleRad);
+    return `
+      <svg width="${size}" height="${size/2 + 12}" viewBox="0 0 ${size} ${size/2 + 12}">
+        <path d="${d}" fill="none" stroke="var(--border)" stroke-width="${stroke}" stroke-linecap="round"/>
+        <path d="${d}" fill="none" stroke="var(--gain)" stroke-width="${stroke}" stroke-linecap="round"
+          stroke-dasharray="${fillLen.toFixed(2)} ${arcLen.toFixed(2)}"/>
+        <line x1="${cx}" y1="${cy}" x2="${nx.toFixed(2)}" y2="${ny.toFixed(2)}" stroke="var(--text-muted)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="${cx}" cy="${cy}" r="3" fill="var(--text-muted)"/>
+      </svg>`;
+  }
+
+  function donutChart(longCount, shortCount){
+    const total = longCount + shortCount;
+    const size = 64, stroke = 11, r = (size - stroke) / 2;
+    const circ = 2 * Math.PI * r;
+    const longLen = total ? (circ * longCount / total) : 0;
+    const shortLen = total ? (circ * shortCount / total) : 0;
+    if(!total){
+      return `
+        <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+          <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="var(--border)" stroke-width="${stroke}"/>
+        </svg>`;
+    }
+    return `
+      <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+        <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="var(--border)" stroke-width="${stroke}"/>
+        <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="var(--gain)" stroke-width="${stroke}"
+          stroke-dasharray="${longLen.toFixed(2)} ${(circ - longLen).toFixed(2)}" stroke-dashoffset="0"
+          stroke-linecap="round" transform="rotate(-90 ${size/2} ${size/2})"/>
+        <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="var(--loss)" stroke-width="${stroke}"
+          stroke-dasharray="${shortLen.toFixed(2)} ${(circ - shortLen).toFixed(2)}" stroke-dashoffset="${(-longLen).toFixed(2)}"
+          stroke-linecap="round" transform="rotate(-90 ${size/2} ${size/2})"/>
+      </svg>`;
+  }
+
+  function renderAccountsOverview(){
+    const box = $('#accountsOverview');
+    if(currentAccount !== 'Main' || accounts.length <= 1){
+      box.style.display = 'none';
+      box.innerHTML = '';
+      return;
+    }
+    box.style.display = 'block';
+
+    const perAccount = accounts.map(name => {
+      const view = trades.filter(t => t.account === name);
+      const closedSorted = view.filter(t => computePnl(t) !== null).sort((a,b) => new Date(a.date) - new Date(b.date));
+      const net = closedSorted.reduce((sum,t)=>sum+Number(computePnl(t).pnl.toFixed(2)),0);
+      const wins = closedSorted.filter(t => computePnl(t).pnl > 0).length;
+      const winRate = closedSorted.length ? (wins / closedSorted.length) * 100 : 0;
+      const deployed = closedSorted.reduce((sum, t) => sum + t.size, 0);
+      const retPct = deployed ? (net / deployed) * 100 : 0;
+      const investment = getInvestment(name);
+      const balance = investment + net;
+      return { name, count: view.length, closedCount: closedSorted.length, net, winRate, retPct, closedSorted, investment, balance };
+    });
+
+    const totalNet = perAccount.reduce((s,a) => s + a.net, 0);
+    const totalTrades = perAccount.reduce((s,a) => s + a.count, 0);
+    const totalClosed = perAccount.reduce((s,a) => s + a.closedCount, 0);
+    const totalWins = perAccount.reduce((s,a) => s + Math.round(a.winRate/100 * a.closedCount), 0);
+    const blendedWinRate = totalClosed ? (totalWins / totalClosed) * 100 : 0;
+    const totalInvestment = perAccount.reduce((s,a) => s + a.investment, 0);
+    const totalBalance = totalInvestment + totalNet;
+    const totalOpen = trades.filter(t => computePnl(t) === null).length;
+    const allResults = trades.filter(t => computePnl(t) !== null).map(t => computePnl(t).pnl);
+    const grossWinAll = allResults.filter(r => r > 0).reduce((a,b)=>a+b,0);
+    const grossLossAll = Math.abs(allResults.filter(r => r <= 0).reduce((a,b)=>a+b,0));
+    const profitFactorAll = grossLossAll > 0 ? (grossWinAll / grossLossAll) : (grossWinAll > 0 ? Infinity : 0);
+    const winsAll = allResults.filter(r => r > 0).length;
+    const lossesAll = allResults.filter(r => r <= 0).length;
+    const winRateAll = totalClosed ? (winsAll / totalClosed) * 100 : 0;
+    const closedTradesAllSorted = trades.filter(t => computePnl(t) !== null).slice().sort((a,b) => new Date(a.date) - new Date(b.date));
+    let ddCum = 0, ddPeak = 0, maxDrawdown = 0;
+    closedTradesAllSorted.forEach(t => {
+      ddCum += computePnl(t).pnl;
+      if(ddCum > ddPeak) ddPeak = ddCum;
+      const dd = ddPeak - ddCum;
+      if(dd > maxDrawdown) maxDrawdown = dd;
+    });
+    const closedTradesAll = trades.filter(t => computePnl(t) !== null);
+    const closeLongCount = closedTradesAll.filter(t => t.side === 'long').length;
+    const closeShortCount = closedTradesAll.filter(t => t.side === 'short').length;
+    const openTradesAll = trades.filter(t => computePnl(t) === null);
+    const openLongCount = openTradesAll.filter(t => t.side === 'long').length;
+    const openShortCount = openTradesAll.filter(t => t.side === 'short').length;
+
+    box.innerHTML = `
+      <div class="panel-head">
+        <div class="panel-title">All accounts</div>
+        <div class="ga-updated">Updated ${fmtUpdatedAt(new Date())}</div>
+      </div>
+      <div class="ga-summary">
+        <div class="ga-metric">
+          <div class="ga-metric-label">Accounts</div>
+          <div class="ga-metric-value">${accounts.filter(a => a !== 'Main').length}</div>
+        </div>
+        <div class="ga-metric">
+          <div class="ga-metric-label">Total Assets</div>
+          <div class="ga-metric-value">${fmtMoney(totalInvestment)}</div>
+        </div>
+        <div class="ga-metric">
+          <div class="ga-metric-label">Balance</div>
+          <div class="ga-metric-value ${totalBalance > totalInvestment ? 'gain' : (totalBalance < totalInvestment ? 'loss' : '')}">${fmtMoney(totalBalance)}</div>
+        </div>
+        <div class="ga-metric">
+          <div class="ga-metric-label">Open positions</div>
+          <div style="display:flex; align-items:center; gap:14px; margin-top:2px;">
+            ${donutChart(openLongCount, openShortCount)}
+            <div>
+              <div class="ga-metric-value ${totalOpen ? 'gain' : ''}">${totalOpen}</div>
+              <div class="ga-metric-sub"><span style="color:var(--gain);">${openLongCount} Long</span> / <span style="color:var(--loss);">${openShortCount} Short</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="ga-metric">
+          <div class="ga-metric-label">Total Closed Positions</div>
+          <div style="display:flex; align-items:center; gap:14px; margin-top:2px;">
+            ${donutChart(closeLongCount, closeShortCount)}
+            <div>
+              <div class="ga-metric-value">${totalClosed}</div>
+              <div class="ga-metric-sub"><span style="color:var(--gain);">${closeLongCount} Long</span> / <span style="color:var(--loss);">${closeShortCount} Short</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="ga-metric">
+          <div class="ga-metric-label">Lifetime P&L</div>
+          <div class="ga-metric-value ${totalNet > 0 ? 'gain' : (totalNet < 0 ? 'loss' : '')}">${fmtMoney(totalNet)}</div>
+          <div class="ga-metric-sub">${totalClosed} closed trade${totalClosed===1?'':'s'}</div>
+        </div>
+        <div class="ga-metric">
+          <div class="ga-metric-label">Win Rate</div>
+          <div style="display:flex; align-items:center; gap:14px; margin-top:2px;">
+            ${gaugeChart(winRateAll)}
+            <div>
+              <div class="ga-metric-value">${totalClosed ? winRateAll.toFixed(0) + '%' : '—'}</div>
+              <div class="ga-metric-sub"><span style="color:var(--gain);">${winsAll} Win</span> / <span style="color:var(--loss);">${lossesAll} Loss</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="ga-metric pf-metric">
+          ${profitFactorBlock(profitFactorAll, grossWinAll, grossLossAll, totalClosed)}
+        </div>
+        <div class="ga-metric">
+          <div class="ga-metric-label">Max Drawdown</div>
+          <div class="ga-metric-value ${maxDrawdown > 0 ? 'loss' : ''}">${totalClosed ? (maxDrawdown > 0 ? '-' + fmtMoney(maxDrawdown) : fmtMoney(0)) : '—'}</div>
+        </div>
+      </div>
+      <div class="ga-rows">
+        ${perAccount.filter(a => a.name !== 'Main').map(a => {
+          const chipCls = a.retPct > 0 ? 'gain' : (a.retPct < 0 ? 'loss' : 'flat');
+          const pnlCls = a.net > 0 ? 'gain' : (a.net < 0 ? 'loss' : '');
+          const balCls = a.balance > a.investment ? 'gain' : (a.balance < a.investment ? 'loss' : '');
+          return `
+            <button class="ga-row ${a.name === currentAccount ? 'active' : ''}" data-switch-mini="${escapeHtml(a.name)}">
+              <div>
+                <div class="ga-row-name">${a.name === currentAccount ? '<span class="active-dot"></span>' : ''}${escapeHtml(a.name)}</div>
+                <div class="ga-row-sub">${a.count} trade${a.count===1?'':'s'} · ${a.closedCount ? a.winRate.toFixed(0) + '% win' : 'no closed trades'} · assets ${fmtMoney(a.investment)}</div>
+              </div>
+              <div class="ga-row-spark">${miniSparkline(a.closedSorted)}</div>
+              <div class="ga-row-pnl ${pnlCls}">
+                <span class="pnl-num">${fmtMoney(a.net)}</span>
+                <span class="pnl-chip ${chipCls}">${a.closedCount ? fmtPct(a.retPct) : '—'}</span>
+              </div>
+              <div class="ga-row-pnl ${balCls}" style="grid-column: 1 / -1; justify-content: flex-start; margin-top:2px;">
+                <span class="ga-row-sub" style="margin:0;">Balance:</span>
+                <span class="pnl-num" style="min-width:auto;">${fmtMoney(a.balance)}</span>
+              </div>
+            </button>
+          `;
+        }).join('')}
+      </div>
+    `;
+
+    box.querySelectorAll('[data-switch-mini]').forEach(el => {
+      el.addEventListener('click', async () => {
+        await saveCurrentAccount(el.dataset.switchMini);
+        renderAll();
+      });
+    });
+  }
+
+  function renderAccountPill(){
+    $('#accountPillText').textContent = currentAccount === 'Main' ? 'All accounts' : currentAccount;
+    $('#openAddBtn').style.display = currentAccount === 'Main' ? 'none' : '';
+    $('#clearAllBtn').style.display = currentAccount === 'Main' ? 'none' : '';
+  }
+
+  // ---------- Modal ----------
+  function openModal(id){
+    editingId = id || null;
+    const t = id ? trades.find(x => x.id === id) : null;
+    $('#modalTitle').textContent = t ? 'Edit trade' : 'New Trade';
+    $('#modalSub').textContent = t ? 'Update the record — nothing here is graded.' : "Record what you actually did — this journal doesn't grade you.";
+    $('#f_asset').value = t ? t.asset : '';
+    $('#f_entry').value = t ? t.entry : '';
+    $('#f_exit').value = t && t.exit !== null && t.exit !== undefined ? t.exit : '';
+    $('#f_size').value = t ? t.size : '';
+    $('#f_date').value = t ? t.date : new Date().toISOString().slice(0,10);
+    $('#f_notes').value = t ? (t.notes || '') : '';
+    setSide(t ? t.side : 'long');
+    $('#formErr').textContent = '';
+    $('#overlay').classList.add('open');
+    setTimeout(() => $('#f_asset').focus(), 50);
+  }
+
+  function closeModal(){
+    $('#overlay').classList.remove('open');
+    editingId = null;
+  }
+
+  function setSide(side){
+    currentSide = side;
+    document.querySelectorAll('.side-toggle button').forEach(b => {
+      b.classList.toggle('active', b.dataset.side === side);
+    });
+  }
+
+  document.querySelectorAll('.side-toggle button').forEach(b => {
+    b.addEventListener('click', () => setSide(b.dataset.side));
+  });
+
+  // ---------- Sheet connect modal ----------
+  function openSheetModal(){
+    $('#f_sheet_url').value = sheetUrl || '';
+    $('#sheetErr').textContent = '';
+    $('#sheetModalSub').textContent = sheetUrl
+      ? 'Your journal is synced to this Sheet. Update the URL or disconnect below.'
+      : "Paste the Web App URL from your Apps Script deployment.";
+    $('#disconnectRow').style.display = sheetUrl ? 'block' : 'none';
+    $('#sheetOverlay').classList.add('open');
+    setTimeout(() => $('#f_sheet_url').focus(), 50);
+  }
+  function closeSheetModal(){ $('#sheetOverlay').classList.remove('open'); }
+
+  $('#syncPill').addEventListener('click', openSheetModal);
+  $('#bannerConnectBtn').addEventListener('click', openSheetModal);
+  $('#sheetCancelBtn').addEventListener('click', closeSheetModal);
+  $('#sheetOverlay').addEventListener('click', (e) => { if(e.target.id === 'sheetOverlay') closeSheetModal(); });
+
+  // ---------- Accounts ----------
+  function openAccountModal(){
+    renderAccountList();
+    $('#f_new_account').value = '';
+    $('#f_new_account_investment').value = '';
+    $('#accountErr').textContent = '';
+    $('#accountOverlay').classList.add('open');
+  }
+  function closeAccountModal(){ $('#accountOverlay').classList.remove('open'); }
+
+  function renderAccountList(){
+    const list = $('#accountList');
+    const orderedAccounts = accounts.slice().sort((a, b) => (a === 'Main' ? -1 : b === 'Main' ? 1 : 0));
+    list.innerHTML = orderedAccounts.map(name => {
+      const count = trades.filter(t => t.account === name).length;
+      const isActive = name === currentAccount;
+      const isMain = name === 'Main';
+      return `
+        <div class="account-row ${isActive ? 'active' : ''}" style="flex-wrap:wrap; align-items:center;">
+          <span class="acct-name" ${isActive ? '' : `data-switch="${escapeHtml(name)}"`}>
+            ${isActive ? '<b>ACTIVE</b>' : ''} ${escapeHtml(name)}
+            ${isMain ? '' : `<span class="acct-count">${count} trade${count===1?'':'s'}</span>`}
+          </span>
+          ${isMain ? '' : `
+          <span style="display:flex; align-items:center; gap:8px;">
+            <span style="display:flex; align-items:center; gap:4px;">
+              <span class="acct-count" style="margin:0;">Assets $</span>
+              <input type="number" step="any" class="acct-invest-input" data-invest-acct="${escapeHtml(name)}"
+                value="${getInvestment(name)}" style="width:90px; background:var(--bg); border:1px solid var(--border);
+                border-radius:4px; color:var(--text); font-family:var(--font-mono); font-size:12px; padding:4px 6px;">
+            </span>
+            ${accounts.length > 1 && !isActive ? `<button class="icon-btn" data-del-acct="${escapeHtml(name)}">del</button>` : ''}
+          </span>
+          `}
+        </div>
+      `;
+    }).join('');
+
+    list.querySelectorAll('[data-switch]').forEach(el => {
+      el.addEventListener('click', async () => {
+        await saveCurrentAccount(el.dataset.switch);
+        renderAccountList();
+        renderAll();
+      });
+    });
+    list.querySelectorAll('[data-invest-acct]').forEach(el => {
+      el.addEventListener('click', (e) => e.stopPropagation());
+      el.addEventListener('change', async (e) => {
+        e.stopPropagation();
+        await setInvestment(el.dataset.investAcct, el.value);
+        renderAll();
+      });
+    });
+    list.querySelectorAll('[data-del-acct]').forEach(el => {
+      el.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const name = el.dataset.delAcct;
+        const count = trades.filter(t => t.account === name).length;
+        const msg = count
+          ? `Delete "${name}" and its ${count} trade${count===1?'':'s'}? This cannot be undone.`
+          : `Delete the empty account "${name}"?`;
+        if(!confirm(msg)) return;
+        accounts = accounts.filter(a => a !== name);
+        trades = trades.filter(t => t.account !== name);
+        delete investments[name];
+        if(currentAccount === name) await saveCurrentAccount(accounts[0]);
+        await saveTrades();
+        renderAccountList();
+        renderAll();
+      });
+    });
+  }
+
+  $('#accountPill').addEventListener('click', openAccountModal);
+  $('#accountCancelBtn').addEventListener('click', closeAccountModal);
+  $('#accountOverlay').addEventListener('click', (e) => { if(e.target.id === 'accountOverlay') closeAccountModal(); });
+
+  $('#accountAddBtn').addEventListener('click', async () => {
+    const name = $('#f_new_account').value.trim();
+    const investmentRaw = $('#f_new_account_investment').value.trim();
+    if(!name){
+      $('#accountErr').textContent = 'Give the account a name.';
+      return;
+    }
+    if(accounts.includes(name)){
+      $('#accountErr').textContent = 'An account with that name already exists.';
+      return;
+    }
+    if(investmentRaw === '' || isNaN(Number(investmentRaw))){
+      $('#accountErr').textContent = 'Enter an investment amount.';
+      return;
+    }
+    accounts.push(name);
+    investments[name] = Number(investmentRaw);
+    await saveCurrentAccount(name);
+    await saveTrades();
+    $('#f_new_account').value = '';
+    $('#f_new_account_investment').value = '';
+    $('#accountErr').textContent = '';
+    renderAccountList();
+    renderAll();
+  });
+
+  $('#sheetSaveBtn').addEventListener('click', async () => {
+    const url = $('#f_sheet_url').value.trim();
+    if(!url || !url.startsWith('https://script.google.com/')){
+      $('#sheetErr').textContent = 'Paste a valid Apps Script Web App URL (starts with https://script.google.com/).';
+      return;
+    }
+    const btn = $('#sheetSaveBtn');
+    btn.textContent = 'Connecting…';
+    btn.disabled = true;
+    await saveSheetUrl(url);
+    // Push current local trades up, then re-pull to confirm the round trip works
+    try{
+      await saveTrades();
+      await loadTrades();
+      $('#sheetErr').textContent = '';
+      closeSheetModal();
+      renderAll();
+    }catch(e){
+      $('#sheetErr').textContent = "Couldn't reach that URL. Double-check the deployment is set to \"Anyone\" access.";
+    }
+    btn.textContent = 'Connect';
+    btn.disabled = false;
+  });
+
+  $('#sheetDisconnectBtn').addEventListener('click', async () => {
+    if(confirm('Disconnect the Google Sheet? Your trades stay in this browser as a local cache.')){
+      await saveSheetUrl(null);
+      setSync('local');
+      closeSheetModal();
+      renderAll();
+    }
+  });
+
+  $('#openAddBtn').addEventListener('click', () => openModal());
+  $('#cancelBtn').addEventListener('click', closeModal);
+  $('#overlay').addEventListener('click', (e) => { if(e.target.id === 'overlay') closeModal(); });
+  document.addEventListener('keydown', (e) => {
+    if(e.key !== 'Escape') return;
+    closeModal();
+    closeSheetModal();
+    closeAccountModal();
+    closeCalPicker();
+    closeDayDetail();
+  });
+
+  $('#tradeForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const asset = $('#f_asset').value.trim().toUpperCase();
+    const entry = parseFloat($('#f_entry').value);
+    const exitRaw = $('#f_exit').value;
+    const exit = exitRaw === '' ? null : parseFloat(exitRaw);
+    const size = parseFloat($('#f_size').value);
+    const date = $('#f_date').value;
+    const notes = $('#f_notes').value.trim();
+
+    if(!asset || isNaN(entry) || isNaN(size) || !date){
+      $('#formErr').textContent = 'Fill in asset, entry price, size, and date.';
+      return;
+    }
+    if(entry <= 0 || size <= 0){
+      $('#formErr').textContent = 'Entry price and size must be greater than zero.';
+      return;
+    }
+
+    const existing = editingId ? trades.find(t => t.id === editingId) : null;
+    const record = { id: editingId || uid(), asset, side: currentSide, entry, exit, size, date, notes, account: existing ? existing.account : currentAccount };
+
+    if(editingId){
+      const idx = trades.findIndex(t => t.id === editingId);
+      if(idx > -1) trades[idx] = record;
+    }else{
+      trades.push(record);
+    }
+
+    const saveBtn = $('#saveBtn');
+    saveBtn.textContent = 'Saving…';
+    saveBtn.disabled = true;
+    await saveTrades();
+    saveBtn.textContent = 'Save trade';
+    saveBtn.disabled = false;
+
+    closeModal();
+    renderAll();
+  });
+
+  async function deleteTrade(id){
+    const t = trades.find(x => x.id === id);
+    const label = t ? `${t.asset} ${t.side}` : 'this trade';
+    if(!confirm(`Delete ${label}? This cannot be undone.`)) return;
+    trades = trades.filter(t => t.id !== id);
+    await saveTrades();
+    renderAll();
+  }
+
+  $('#clearAllBtn').addEventListener('click', async () => {
+    const view = filteredTrades();
+    if(!view.length) return;
+    const isAllAccounts = currentAccount === 'Main';
+    const msg = isAllAccounts
+      ? 'Delete all trades across every account? This cannot be undone.'
+      : `Delete all trades in "${currentAccount}"? This cannot be undone.`;
+    if(confirm(msg)){
+      trades = isAllAccounts ? [] : trades.filter(t => t.account !== currentAccount);
+      await saveTrades();
+      renderAll();
+    }
+  });
+
+  // ---------- Init ----------
+  (async function init(){
+    await loadTheme();
+    $('#tableWrap').innerHTML = `<div class="loading-note">Loading trade log…</div>`;
+    $('#syncPillText').textContent = 'Connecting…';
+    await loadTrades();
+    if(!accounts.includes(currentAccount)) currentAccount = accounts[0];
+    renderAll();
+  })();
+})();
+</script>
+</body>
+</html>
