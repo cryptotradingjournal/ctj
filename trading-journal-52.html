@@ -1650,12 +1650,6 @@
 (function(){
   const CACHE_KEY = 'ledger_trades_cache_v1';
   const URL_KEY = 'ledger_sheet_url_v1';
-  // Fallback Sheet URL used only when this browser/user has never saved a
-  // sync preference of its own (see loadSheetUrl below). Someone who
-  // explicitly connects a different sheet, or explicitly disconnects, always
-  // has their own choice win on every later visit — this only fires once,
-  // on a truly fresh session.
-  const DEFAULT_SHEET_URL = 'https://script.google.com/macros/s/AKfycbyt2bmk_-in789k5IjntE_wmJjOVmUQ2rqvAiEh_p2guT_t_s41AYWz23hv6vRO9TTk-Q/exec';
   const ACCOUNT_KEY = 'ledger_current_account_v1';
   const THEME_KEY = 'ledger_theme_v1';
   const LAST_UPDATE_KEY = 'ledger_last_update_v1'; // timestamp of the last *actual* trade/account/investment
@@ -1713,21 +1707,15 @@
   }
 
   async function loadSheetUrl(){
-    // Preference resolution, in order:
-    //  1. A URL this browser/user explicitly saved before (Connect Sheet
-    //     modal) — always wins.
-    //  2. An explicit disconnect. saveSheetUrl(null) below stores '' rather
-    //     than deleting the key, precisely so this case is distinguishable
-    //     from "never asked" — otherwise every visit after disconnecting
-    //     would look like a fresh session and silently reconnect.
-    //  3. Truly nothing saved yet (window.storage.get() throws for a key
-    //     that was never written) — a first-ever visit, so fall back to
-    //     DEFAULT_SHEET_URL and auto-connect out of the box.
+    // The only source of truth for sync is a URL the user explicitly entered
+    // via the Connect Google Sheet modal (saveSheetUrl below persists it to
+    // storage). There is no hardcoded fallback — a fresh session with no
+    // saved URL simply stays in "Local only" mode until the user connects.
     try{
       const res = await window.storage.get(URL_KEY, false);
-      sheetUrl = (res && res.value) ? res.value : null; // '' (explicit disconnect) -> null, never re-applies the default
+      sheetUrl = res && res.value ? res.value : null;
     }catch(e){
-      sheetUrl = DEFAULT_SHEET_URL; // key never existed — first-ever visit
+      sheetUrl = null;
     }
   }
 
@@ -1740,12 +1728,7 @@
         // back by loadSheetUrl() on the next visit.
         await window.storage.set(URL_KEY, url, false);
       }else{
-        // Store an explicit empty-string marker instead of deleting the
-        // key. Deleting it would make the next loadSheetUrl() see "key
-        // doesn't exist" and treat this disconnect as a fresh session,
-        // silently reconnecting to DEFAULT_SHEET_URL — this makes an
-        // explicit disconnect actually stick.
-        await window.storage.set(URL_KEY, '', false);
+        await window.storage.delete(URL_KEY, false);
       }
     }catch(e){ console.error('Storage error', e); }
   }
